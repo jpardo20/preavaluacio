@@ -1,0 +1,315 @@
+<!doctype html>
+<html lang="ca">
+<head>
+  <meta charset="utf-8" />
+  <title>Preavaluació (HTML + Excel)</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <style>
+    :root{--bd:#e7e7ea;--txt:#111;--mut:#666;}
+    *{box-sizing:border-box}
+    body { font-family: system-ui, Arial, sans-serif; margin: 0; background:#f7f7f8; color:var(--txt);}
+    header { position: sticky; top:0; background:#fff; border-bottom:1px solid #ddd; padding:10px 14px; z-index:10; }
+    .tag { display:inline-block; margin-right:16px; padding:6px 10px; border-radius:999px; border:1px solid #ddd; background:#fafafa; }
+    main { max-width:880px; margin: 20px auto; background:#fff; border:1px solid var(--bd); border-radius:12px; padding:18px; }
+    fieldset { border:1px solid #eee; border-radius:10px; margin:14px 0; padding:14px; }
+    legend { padding:0 6px; }
+    label { display:block; margin:8px 0 4px; font-weight:600; }
+    select, input[type="number"], input[type="text"], textarea { width:100%; padding:8px; border:1px solid #ccc; border-radius:8px; }
+    textarea { min-height:90px; }
+    button { padding:10px 14px; border-radius:10px; border:1px solid #333; background:#111; color:#fff; cursor:pointer; }
+    .row { display:grid; grid-template-columns: 1fr 1fr; gap:12px; }
+    .muted { color:var(--mut); font-size:12px; }
+    .ok { color:#0a7c2f; }
+    .err { color:#b00020; }
+    /* pantalla de login */
+    #loginWrap{ max-width:720px; margin:48px auto; padding:24px; background:#fff; border:1px solid var(--bd); border-radius:12px; text-align:center; }
+    #app{ display:none; }
+    #noData{ display:none; margin-top:12px; }
+  </style>
+  <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+</head>
+<body>
+  <header>
+    <span class="tag" id="hdrAlumne">Alumne: —</span>
+    <span class="tag" id="hdrModul">Mòdul: —</span>
+    <span class="tag" id="hdrUser">Fes login</span>
+  </header>
+
+  <!-- Pantalla de login -->
+  <section id="loginWrap">
+    <h1 style="margin-top:0">Preavaluació</h1>
+    <p class="muted">Cal iniciar sessió amb el teu compte del centre per carregar els teus alumnes i mòduls.</p>
+    <p><button id="btnLoginBig">Inicia sessió Microsoft</button></p>
+    <p id="loginStatus" class="muted"></p>
+  </section>
+
+  <!-- App -->
+  <main id="app">
+    <h2 style="margin-top:0">Preavaluació</h2>
+    <p class="muted">Tria alumne i mòdul. La capçalera quedarà visible en tot moment.</p>
+
+    <fieldset>
+      <legend>Selecció</legend>
+      <div class="row">
+        <div>
+          <label for="alumneSel">Alumne</label>
+          <select id="alumneSel"></select>
+        </div>
+        <div>
+          <label for="modulSel">Mòdul</label>
+          <select id="modulSel"></select>
+        </div>
+      </div>
+      <p id="noData" class="err">No tens cap alumne assignat (revisa la columna <code>prof_email</code> de la taula <strong>Assignacions</strong>).</p>
+    </fieldset>
+
+    <fieldset>
+      <legend>Valoracions</legend>
+      <div class="row">
+        <div>
+          <label for="nota">Nota estimada (0–10)</label>
+          <input id="nota" type="number" min="0" max="10" step="1" />
+        </div>
+        <div>
+          <label for="semafor">Semàfor</label>
+          <select id="semafor">
+            <option>Verd</option><option>Ambre</option><option>Vermell</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="acad">Acadèmic (1–4)</label>
+          <select id="acad"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        </div>
+        <div>
+          <label for="comp">Comportament (1–4)</label>
+          <select id="comp"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        </div>
+      </div>
+
+      <div class="row">
+        <div>
+          <label for="inter">Interaccions (1–4)</label>
+          <select id="inter"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        </div>
+        <div>
+          <label for="moti">Motivació (1–4)</label>
+          <select id="moti"><option>1</option><option>2</option><option>3</option><option>4</option></select>
+        </div>
+      </div>
+
+      <label for="necess">Necessitats/Adaptacions (separa amb ; )</label>
+      <input id="necess" type="text" placeholder="Cap; Recordatoris; Exemples guiats; Desglossar tasques; Altres" />
+
+      <label for="coment">Comentari (3–5 línies)</label>
+      <textarea id="coment"></textarea>
+    </fieldset>
+
+    <div class="row">
+      <button id="btnEnviar">Enviar a l’Excel</button>
+      <span></span>
+    </div>
+    <p id="status" class="muted"></p>
+  </main>
+
+<script>
+/*** CONFIG (noms de taules i columnes EXACTES) ***/
+const config = {
+  clientId: "1892e1b0-6724-4cfe-b0aa-83d746e755e8",
+  tenantId: "f6fbd66a-02b9-4804-8f74-b16600cf5e00",
+  redirectUri: "http://localhost:5500/",
+  refsFilePath: "/tutoria/Preavaluacio/referencies.xlsx",
+  resFilePath:  "/tutoria/Preavaluacio/preavaluacio_dades.xlsx",
+  refsTables: { alumnes: "Alumnes", assign: "Assignacions" },
+  resTableName: "Respostes",
+  useSharePointSite: false,
+  sharePoint: { hostname: "contoso.sharepoint.com", sitePath: "/sites/ElMeuSite" }
+};
+
+const msalConfig = {
+  auth: { clientId: config.clientId, authority: `https://login.microsoftonline.com/${config.tenantId}`, redirectUri: config.redirectUri },
+  cache: { cacheLocation: "localStorage", storeAuthStateInCookie: false }
+};
+const graphScopes = ["User.Read","Files.ReadWrite","offline_access",...(config.useSharePointSite?["Sites.ReadWrite.All"]:[])];
+const msalApp = new msal.PublicClientApplication(msalConfig);
+
+const $ = (id)=>document.getElementById(id);
+function log(msg, cls="muted"){ const el=$("status"); el.className=cls; el.textContent=msg; }
+function llog(msg, cls="muted"){ const el=$("loginStatus"); el.className=cls; el.textContent=msg; }
+
+let currentUserEmail=null;
+let alumnes=[], assignacions=[];
+
+async function getToken(){
+  const req={ account: msalApp.getAllAccounts()[0], scopes: graphScopes };
+  try{ return (await msalApp.acquireTokenSilent(req)).accessToken; }
+  catch{ return (await msalApp.acquireTokenPopup({scopes:graphScopes})).accessToken; }
+}
+async function gfetch(url,opts={}){
+  const token=await getToken();
+  const r=await fetch(url,{...opts,headers:{ "Authorization":`Bearer ${token}`,"Content-Type":"application/json",...(opts.headers||{}) }});
+  if(!r.ok){ throw new Error(await r.text() || (r.status+" error")); }
+  return r.json();
+}
+function graphBase(){
+  return config.useSharePointSite
+    ? `https://graph.microsoft.com/v1.0/sites/${config.sharePoint.hostname}:${config.sharePoint.sitePath}:/drive`
+    : "https://graph.microsoft.com/v1.0/me/drive";
+}
+function graphPathToFile(base,path){ return `${base}/root:${encodeURI(path)}:`; }
+
+async function loadTableRows(filePath, tableName){
+  const base=graphBase(); const fileUrl=graphPathToFile(base,filePath);
+  const cols=await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(tableName)}/columns`);
+  const colNames=cols.value.map(c=>c.name);
+  const rows=await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(tableName)}/rows`);
+  return { colNames, rows: rows.value.map(r=>r.values[0]) };
+}
+function requireColumns(actual, required, tableName){
+  for(const c of required) if(!actual.includes(c)) throw new Error(`Falta la columna "${c}" a la taula ${tableName}.`);
+}
+
+function updateHeader(){
+  try{
+    const a=JSON.parse($("alumneSel").value||"{}");
+    const m=JSON.parse($("modulSel").value||"{}");
+    $("hdrAlumne").textContent="Alumne: "+(a.student_name||"—");
+    $("hdrModul").textContent="Mòdul: "+(m.module_name||"—");
+  }catch{}
+}
+
+function rebuildAlumnesForProfessor(){
+  const selA=$("alumneSel"), selM=$("modulSel");
+  if(!alumnes.length || !assignacions.length) return;
+
+  let alumnesSource=alumnes;
+  if(currentUserEmail){
+    const pairs=new Set(assignacions.filter(x=>(x.prof_email||"").toLowerCase()===currentUserEmail)
+      .map(x=>`${x.course}||${x.group}`));
+    alumnesSource=alumnes.filter(a=>pairs.has(`${a.course}||${a.group}`));
+  }
+
+  selA.innerHTML=alumnesSource.map(a=>`<option value='${JSON.stringify(a)}'>${a.student_name}${a.student_id?" ("+a.student_id+")":""}</option>`).join("");
+  const hasAlumnes = selA.options.length>0;
+  $("noData").style.display = hasAlumnes ? "none" : "block";
+  if(hasAlumnes) selA.selectedIndex=0;
+
+  // mòduls (si hi ha alumne i profe)
+  const a = hasAlumnes ? JSON.parse(selA.value) : {};
+  const mods = assignacions.filter(m=> m.course===a.course && m.group===a.group && (!currentUserEmail || (m.prof_email||"").toLowerCase()===currentUserEmail));
+  selM.innerHTML = mods.map(m=>`<option value='${JSON.stringify(m)}'>${m.module_name}${m.module_code?" ("+m.module_code+")":""}</option>`).join("");
+  if(selM.options.length>0) selM.selectedIndex=0;
+  updateHeader();
+}
+
+async function initData(){
+  log("Carregant llistes d'Excel…");
+  // Alumnes
+  const A = await loadTableRows(config.refsFilePath, config.refsTables.alumnes);
+  requireColumns(A.colNames, ["course","group","student_id","student_name","student_email"], "Alumnes");
+  const ia=Object.fromEntries(A.colNames.map((n,i)=>[n,i]));
+  alumnes=A.rows.map(v=>({course:v[ia.course],group:v[ia.group],student_id:v[ia.student_id],student_name:v[ia.student_name],student_email:v[ia.student_email]}));
+
+  // Assignacions
+  const S = await loadTableRows(config.refsFilePath, config.refsTables.assign);
+  requireColumns(S.colNames, ["course","group","module_code","module_name","prof_email"], "Assignacions");
+  const is=Object.fromEntries(S.colNames.map((n,i)=>[n,i]));
+  assignacions=S.rows.map(v=>({course:v[is.course],group:v[is.group],module_code:v[is.module_code],module_name:v[is.module_name],prof_email:v[is.prof_email]}));
+
+  // Listeners
+  $("alumneSel").addEventListener("change", ()=>{
+    const a = $("alumneSel").value ? JSON.parse($("alumneSel").value) : {};
+    const mods = assignacions.filter(m=> m.course===a.course && m.group===a.group && (!currentUserEmail || (m.prof_email||"").toLowerCase()===currentUserEmail));
+    $("modulSel").innerHTML = mods.map(m=>`<option value='${JSON.stringify(m)}'>${m.module_name}${m.module_code?" ("+m.module_code+")":""}</option>`).join("");
+    if($("modulSel").options.length>0) $("modulSel").selectedIndex=0;
+    updateHeader();
+  });
+  $("modulSel").addEventListener("change", updateHeader);
+
+  rebuildAlumnesForProfessor();
+  log("Llistes carregades.","ok");
+}
+
+async function login(){
+  try{
+    llog("Obrint finestra d'autenticació…");
+    const res = await msalApp.loginPopup({ scopes: graphScopes });
+    currentUserEmail = (res.account.username||"").toLowerCase();
+    $("hdrUser").textContent = res.account.username;
+    $("loginWrap").style.display="none";
+    $("app").style.display="block";
+    llog("");
+    await initData();
+  }catch(e){ console.error(e); llog("Error d'inici de sessió: "+e.message,"err"); }
+}
+
+/* Sessió d’Excel per escriure */
+async function withSession(filePath, fn){
+  const base=graphBase(); const fileUrl=graphPathToFile(base,filePath);
+  const {id:sessionId}=await gfetch(`${fileUrl}/workbook/createSession`,{method:"POST",body:JSON.stringify({persistChanges:true})});
+  try{
+    const g=(url,opts={})=>gfetch(url,{...opts,headers:{ "workbook-session-id":sessionId, ...(opts.headers||{}) }});
+    return await fn(g,fileUrl);
+  } finally {
+    await gfetch(`${fileUrl}/workbook/closeSession`,{method:"POST",headers:{"workbook-session-id":sessionId}}).catch(()=>{});
+  }
+}
+async function addRowToResponses(payload){
+  return withSession(config.resFilePath, async (g,fileUrl)=>{
+    const endpoint = `${fileUrl}/workbook/tables/${encodeURIComponent(config.resTableName)}/rows/add`;
+    const values=[[ payload.course,payload.group,payload.student_id,payload.student_name,payload.module_code,payload.module_name,payload.nota_0a10,payload.academic_1a4,payload.comportament_1a4,payload.interaccions_1a4,payload.motivacio_1a4,payload.necessitats,payload.semafor,payload.comentari,payload.prof_email,payload.prof_name,payload.timestamp ]];
+    return g(endpoint,{method:"POST",body:JSON.stringify({values})});
+  });
+}
+
+/* Botons */
+$("btnLoginBig").addEventListener("click", login);
+$("btnEnviar").addEventListener("click", async ()=>{
+  try{
+    log("Enviant…");
+    if(!msalApp.getAllAccounts().length){ $("loginWrap").scrollIntoView({behavior:"smooth"}); return; }
+    const user = msalApp.getAllAccounts()[0];
+    currentUserEmail = (user.username||"").toLowerCase();
+
+    const a = $("alumneSel").value ? JSON.parse($("alumneSel").value) : {};
+    const m = $("modulSel").value ? JSON.parse($("modulSel").value) : {};
+    const payload = {
+      course:a.course, group:a.group, student_id:a.student_id, student_name:a.student_name,
+      module_code:m.module_code, module_name:m.module_name,
+      nota_0a10:Number($("nota").value||0),
+      academic_1a4:$("acad").value, comportament_1a4:$("comp").value,
+      interaccions_1a4:$("inter").value, motivacio_1a4:$("moti").value,
+      necessitats:$("necess").value||"Cap",
+      semafor:$("semafor").value, comentari:$("coment").value||"",
+      prof_email:user?.username||"", prof_name:user?.name||"", timestamp:new Date().toISOString()
+    };
+    if(!payload.student_id || !payload.module_code){ log("Tria Alumne i Mòdul.", "err"); return; }
+    if(payload.nota_0a10<0 || payload.nota_0a10>10){ log("Nota fora de 0..10", "err"); return; }
+
+    await addRowToResponses(payload);
+    log("✅ Resposta guardada a l’Excel.", "ok");
+
+    $("nota").value=""; $("acad").value="1"; $("comp").value="1";
+    $("inter").value="1"; $("moti").value="1"; $("necess").value="";
+    $("semafor").value="Verd"; $("coment").value="";
+  }catch(e){ console.error(e); log("Error en enviar: "+e.message,"err"); }
+});
+
+/* Si ja hi ha sessió guardada, entra directe */
+msalApp.handleRedirectPromise()
+.then(async ()=>{
+  const acc=msalApp.getAllAccounts()[0];
+  if(acc){
+    currentUserEmail=(acc.username||"").toLowerCase();
+    $("hdrUser").textContent = acc.username;
+    $("loginWrap").style.display="none";
+    $("app").style.display="block";
+    await initData();
+  }
+})
+.catch(e=>{ console.error(e); llog("Error inicial: "+e.message,"err"); });
+</script>
+</body>
+</html>
