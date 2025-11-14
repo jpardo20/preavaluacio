@@ -14,10 +14,8 @@
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
-    a{color:var(--primary)}
-    .hidden{display:none!important}
-
-    /* HERO (pre-login) */
+    a{color:var(--primary)} .hidden{display:none!important}
+    /* HERO */
     .hero{position:relative;min-height:82vh;display:grid;place-items:center;padding:24px;
       background:linear-gradient(120deg,#0e6efd 0%, #34b3ff 100%);color:#fff;overflow:hidden}
     .hero .container{max-width:980px;display:grid;grid-template-columns:1fr;gap:28px;align-items:center}
@@ -26,43 +24,37 @@
     .hero .cta{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;background:#fff;color:#0b57d0;border:0;cursor:pointer;font-weight:600;box-shadow:var(--shadow)}
     .hero .cta:focus{outline:none;box-shadow:var(--focus)}
     .hero small{opacity:.85}
-
-    /* APP BAR (post-login) */
+    /* APP BAR */
     .appbar{position:sticky;top:0;z-index:50;background:#ffffffd9;backdrop-filter:blur(6px);
       border-bottom:1px solid var(--bd);box-shadow:0 6px 18px rgba(16,24,40,.06)}
     .appbar-inner{max-width:980px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
     .who{color:#334155;font-size:14px}
     .logout{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:8px 12px;cursor:pointer}
     .logout:hover{background:#f8f9fb}
-
     /* APP */
     .wrap{max-width:900px;margin:24px auto 32px;padding:0 16px}
     .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--shadow);padding:18px}
     .muted{color:var(--muted)}
-
     /* PROGRESS */
     .progress{position:relative;background:#eef2ff;border-radius:999px;height:12px;overflow:hidden}
     .progress>.bar{height:100%;width:calc(var(--pct,0)*1%);background:linear-gradient(90deg,#0e6efd,#34b3ff);transition:width .35s ease}
     .progress-label{margin-top:8px;font-size:12px;color:var(--muted)}
-
     /* FORM */
     fieldset{border:1px solid var(--bd);border-radius:12px;padding:14px;margin:14px 0}
-    legend{padding:0 6px}
-    label{display:block;font-weight:600;margin:8px 0 6px}
+    legend{padding:0 6px} label{display:block;font-weight:600;margin:8px 0 6px}
     select{width:100%;padding:10px 12px;border:1px solid #cfd4dc;border-radius:10px;background:#fff}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     .chips{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 0}
     .chip{background:#f2f4f7;border:1px solid var(--bd);padding:6px 10px;border-radius:999px;font-size:12px}
     .btn{padding:10px 14px;border-radius:10px;border:1px solid #1f2937;background:#111827;color:#fff;cursor:pointer}
     .btn:disabled{opacity:.6;cursor:not-allowed}
     .ok{color:#0a7c2f}.err{color:#b00020}
-
     .actions{display:flex;gap:10px;margin-top:10px}
+    .toast{margin-top:8px;font-size:14px}
   </style>
 </head>
 <body>
 
-  <!-- Portada (sense barra de progrés) -->
+  <!-- Portada -->
   <section class="hero" id="hero">
     <div class="container">
       <div>
@@ -74,7 +66,7 @@
     </div>
   </section>
 
-  <!-- Barra superior amb email + Tanca sessió (només post-login) -->
+  <!-- Barra superior -->
   <div class="appbar hidden" id="appbar">
     <div class="appbar-inner">
       <span class="who" id="whoami">—</span>
@@ -90,7 +82,7 @@
         <div class="progress-label" id="topLabel">Pàgina 1 de 10</div>
       </div>
 
-      <!-- PAS 1: Selecciona alumne -->
+      <!-- PAS 1 -->
       <section id="step1">
         <h2 style="margin:14px 0 6px">Pas 1 · Tria alumne</h2>
         <fieldset>
@@ -106,11 +98,11 @@
         </div>
         <div class="actions">
           <button class="btn" id="goStep2" disabled>Següent</button>
-          <span id="status1" class="muted"></span>
+          <span id="status1" class="muted toast"></span>
         </div>
       </section>
 
-      <!-- PAS 2: Selecciona mòdul (filtrat pel pas 1) -->
+      <!-- PAS 2 -->
       <section id="step2" class="hidden">
         <h2 style="margin:14px 0 6px">Pas 2 · Tria mòdul</h2>
         <fieldset>
@@ -125,7 +117,7 @@
         <div class="actions">
           <button class="btn" id="backStep1">Enrere</button>
           <button class="btn" id="btnContinue" disabled>Continua</button>
-          <span id="status2" class="muted"></span>
+          <span id="status2" class="muted toast"></span>
         </div>
       </section>
 
@@ -140,12 +132,16 @@ const path = window.location.pathname.endsWith(".html")
 const redirectGuess = window.location.origin + path;
 
 const config = {
+  // MSAL
   clientId: "1892e1b0-6724-4cfe-b0aa-83d746e755e8",
   tenantId: "f6fbd66a-02b9-4804-8f74-b16600cf5e00",
   redirectUri: redirectGuess,
-  useSharePointSite: false,
-  sharePoint: { hostname: "ELTEUTENANT.sharepoint.com", sitePath: "/sites/ElMeuSite" },
-  refsFilePath: "/tutoria/Preavaluacio/referencies.xlsx",
+
+  // 📌 POSA AQUÍ L’ENLLAÇ COMPARTIT DEL TEU EXCEL (OneDrive)
+  //    Has dit: https://gmqualitytechnologysl365-my.sharepoint.com/:x:/g/personal/jpardo20_digitechfp_com/Xxxxxxxxxxxxxxxxxxxxxxxxxxx?e=xCr8B7
+  sharedLink: "https://gmqualitytechnologysl365-my.sharepoint.com/:x:/g/personal/jpardo20_digitechfp_com/IQCjtGM5iqDARr3Fh1LpzsB6AYE049kU-pr-WRdIIhaEA5g?e=xCr8B7",
+
+  // Noms de taules a l’Excel
   refsTables: { alumnes: "Alumnes", assign: "Assignacions" }
 };
 const PROG_TOTAL = 10;
@@ -159,7 +155,7 @@ const msalConfig = {
   },
   cache: { cacheLocation: "localStorage", storeAuthStateInCookie: false }
 };
-const graphScopes = ["User.Read","Files.ReadWrite", ...(config.useSharePointSite?["Sites.ReadWrite.All"]:[])];
+const graphScopes = ["User.Read","Files.ReadWrite"];
 const msalApp = new msal.PublicClientApplication(msalConfig);
 
 const $ = (id)=>document.getElementById(id);
@@ -172,7 +168,13 @@ setProgress(1);
 
 let currentUserEmail = null;
 let alumnes=[], assignacions=[];
+let workbookSessionId = null; // workbook-session-id header
 
+function showStep(n){
+  $("step1").classList.toggle("hidden", n!==1);
+  $("step2").classList.toggle("hidden", n!==2);
+  setProgress(n);
+}
 function resetUI(){
   $("app").classList.add("hidden");
   $("appbar").classList.add("hidden");
@@ -185,45 +187,106 @@ function resetUI(){
   $("chipModul").textContent  = "Mòdul: —";
   $("goStep2").disabled = true;
   $("btnContinue").disabled = true;
+  workbookSessionId = null;
   showStep(1);
   setProgress(1);
+  statusMsg("");
+}
+function statusMsg(msg, where="status1", cls="muted"){
+  const el = $(where);
+  if(!el) return;
+  el.className = cls + " toast";
+  el.textContent = msg || "";
 }
 
-function showStep(n){
-  $("step1").classList.toggle("hidden", n!==1);
-  $("step2").classList.toggle("hidden", n!==2);
-  setProgress(n); // 1 o 2 de 10
+/* ===== Graph helpers (Shared Link) ===== */
+function base64UrlEncode(str){
+  // Graph vol Base64 URL-safe i sense '='
+  const b64 = btoa(str).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,'');
+  return b64;
 }
-
+function sharedDriveItemUrlFromLink(sharedLink){
+  // https://graph.microsoft.com/v1.0/shares/u!<BASE64URL>/driveItem
+  const enc = base64UrlEncode(sharedLink);
+  return `https://graph.microsoft.com/v1.0/shares/u!${enc}/driveItem`;
+}
 async function getToken(){
   const req={ account: msalApp.getAllAccounts()[0], scopes: graphScopes };
   try{ return (await msalApp.acquireTokenSilent(req)).accessToken; }
   catch{ return (await msalApp.acquireTokenPopup({scopes:graphScopes})).accessToken; }
 }
-async function gfetch(url,opts={}){
+async function gfetch(url,opts={}, useWorkbookHeader=true){
   const token=await getToken();
-  const r=await fetch(url,{...opts,headers:{ "Authorization":`Bearer ${token}`,"Content-Type":"application/json",...(opts.headers||{}) }});
-  if(!r.ok){ throw new Error(await r.text() || (r.status+" error")); }
+  const headers = {
+    "Authorization":`Bearer ${token}`,
+    "Content-Type":"application/json",
+    ...(opts.headers||{})
+  };
+  if(useWorkbookHeader && workbookSessionId){
+    headers["workbook-session-id"] = workbookSessionId;
+  }
+  const r=await fetch(url,{...opts,headers});
+  if(!r.ok){
+    let detail = "";
+    try{ detail = await r.text(); }catch{}
+    const error = new Error(`HTTP ${r.status} ${r.statusText} :: ${detail}`);
+    error.status = r.status;
+    error.body = detail;
+    throw error;
+  }
+  if(r.status===204) return null;
   return r.json();
 }
-function graphBase(){
-  return config.useSharePointSite
-    ? `https://graph.microsoft.com/v1.0/sites/${config.sharePoint.hostname}:${config.sharePoint.sitePath}:/drive`
-    : "https://graph.microsoft.com/v1.0/me/drive";
+function niceGraphError(e){
+  let msg = e.message || String(e);
+  try{
+    const body = JSON.parse(e.body || "{}");
+    if(body && body.error){
+      const code = body.error.code || "";
+      const message = body.error.message || msg;
+      if(e.status===404 || /ItemNotFound/i.test(code)){
+        msg = "No trobo el fitxer d'origen (404). Revisa l'enllaç compartit o els permisos.";
+      }else if(e.status===403 || /accessDenied/i.test(code)){
+        msg = "No tens permisos per accedir al fitxer (403). Revisa la configuració de l'enllaç.";
+      }else if(e.status===423 || /Locked/i.test(code)){
+        msg = "El fitxer està en ús (423). Si algú l'està editant a Excel, tanca'l i torna-ho a provar.";
+      }else{
+        msg = message;
+      }
+    }
+  }catch{}
+  return msg;
 }
-function graphPathToFile(base,path){ return `${base}/root:${encodeURI(path)}:`; }
 
-async function loadTableRows(filePath, tableName){
-  const base=graphBase(); const fileUrl=graphPathToFile(base,filePath);
-  const cols=await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(tableName)}/columns`);
-  const colNames=cols.value.map(c=>c.name);
-  const rows=await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(tableName)}/rows`);
+/* ===== Workbook (session) ===== */
+async function ensureWorkbookSession(fileDriveItemUrl){
+  if(workbookSessionId) return workbookSessionId;
+  try{
+    const s = await gfetch(`${fileDriveItemUrl}/workbook/createSession`, {
+      method:"POST",
+      body: JSON.stringify({persistChanges:false})
+    }, false);
+    workbookSessionId = s.id;
+    return workbookSessionId;
+  }catch(e){
+    console.warn("No s'ha pogut crear la sessió de workbook:", e);
+    workbookSessionId = null; // continuem sense sessió
+    return null;
+  }
+}
+async function loadTableRows_sharedLink(sharedLink, tableName){
+  const fileUrl = sharedDriveItemUrlFromLink(sharedLink);
+  await ensureWorkbookSession(fileUrl);
+  const cols = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(tableName)}/columns`);
+  const colNames = cols.value.map(c=>c.name);
+  const rows = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(tableName)}/rows`);
   return { colNames, rows: rows.value.map(r=>r.values[0]) };
 }
 function requireColumns(actual, required, tableName){
-  for(const c of required) if(!actual.includes(c)) throw new Error(`Falta la columna \"${c}\" a la taula ${tableName}.`);
+  for(const c of required) if(!actual.includes(c)) throw new Error(`Falta la columna "${c}" a la taula ${tableName}.`);
 }
 
+/* ===== Dades i UI ===== */
 function updateChips(){
   try{
     const a=$("alumneSel").value?JSON.parse($("alumneSel").value):{};
@@ -233,7 +296,6 @@ function updateChips(){
     $("chipModul").textContent  = "Mòdul: "  + (m.module_name||"—");
   }catch{}
 }
-
 function rebuildAlumnesForProfessor(){
   if(!alumnes.length || !assignacions.length) return;
   let source=alumnes;
@@ -241,14 +303,13 @@ function rebuildAlumnesForProfessor(){
     const pairs=new Set(assignacions.filter(x=>(x.prof_email||"").toLowerCase()===currentUserEmail).map(x=>`${x.course}||${x.group}`));
     source=alumnes.filter(a=>pairs.has(`${a.course}||${a.group}`));
   }
-  $("alumneSel").innerHTML = source.map(a=>`<option value='${JSON.stringify(a)}'>${a.student_name}${a.student_id?" ("+a.student_id+")":""}</option>`).join("");
+  $("alumneSel").innerHTML = source.map(a=>`<option value='${JSON.stringify(a)}'>${a.student_name}${a.student_id? " ("+a.student_id+")": ""}</option>`).join("");
   const has = $("alumneSel").options.length>0;
   $("noData").style.display = has ? "none" : "block";
   if(has) $("alumneSel").selectedIndex=0;
   $("goStep2").disabled = !has;
   updateChips();
 }
-
 function rebuildModulsForAlumne(){
   const a = $("alumneSel").value?JSON.parse($("alumneSel").value):{};
   const mods = assignacions.filter(m=> m.course===a.course && m.group===a.group && (!currentUserEmail || (m.prof_email||"").toLowerCase()===currentUserEmail));
@@ -259,20 +320,29 @@ function rebuildModulsForAlumne(){
 }
 
 async function initData(){
-  const A = await loadTableRows(config.refsFilePath, config.refsTables.alumnes);
-  requireColumns(A.colNames, ["course","group","student_id","student_name","student_email"], "Alumnes");
-  const ia=Object.fromEntries(A.colNames.map((n,i)=>[n,i]));
-  alumnes=A.rows.map(v=>({course:v[ia.course],group:v[ia.group],student_id:v[ia.student_id],student_name:v[ia.student_name],student_email:v[ia.student_email]}));
+  try{
+    statusMsg("Carregant llistes d'Excel…","status1");
+    const A = await loadTableRows_sharedLink(config.sharedLink, config.refsTables.alumnes);
+    requireColumns(A.colNames, ["course","group","student_id","student_name","student_email"], "Alumnes");
+    const ia=Object.fromEntries(A.colNames.map((n,i)=>[n,i]));
+    alumnes=A.rows.map(v=>({course:v[ia.course],group:v[ia.group],student_id:v[ia.student_id],student_name:v[ia.student_name],student_email:v[ia.student_email]}));
 
-  const S = await loadTableRows(config.refsFilePath, config.refsTables.assign);
-  requireColumns(S.colNames, ["course","group","module_code","module_name","prof_email"], "Assignacions");
-  const is=Object.fromEntries(S.colNames.map((n,i)=>[n,i]));
-  assignacions=S.rows.map(v=>({course:v[is.course],group:v[is.group],module_code:v[is.module_code],module_name:v[is.module_name],prof_email:v[is.prof_email]}));
+    const S = await loadTableRows_sharedLink(config.sharedLink, config.refsTables.assign);
+    requireColumns(S.colNames, ["course","group","module_code","module_name","prof_email"], "Assignacions");
+    const is=Object.fromEntries(S.colNames.map((n,i)=>[n,i]));
+    assignacions=S.rows.map(v=>({course:v[is.course],group:v[is.group],module_code:v[is.module_code],module_name:v[is.module_name],prof_email:v[is.prof_email]}));
 
-  rebuildAlumnesForProfessor();
-  updateChips();
+    rebuildAlumnesForProfessor();
+    updateChips();
+    statusMsg("Llistes carregades.","status1","ok");
+  }catch(e){
+    console.error(e);
+    statusMsg(niceGraphError(e),"status1","err");
+    alert("Error carregant dades: " + niceGraphError(e));
+  }
 }
 
+/* ===== Flux login/logout ===== */
 async function start(){
   try{
     $("btnStart").disabled=true;
@@ -290,7 +360,6 @@ async function start(){
     $("btnStart").disabled=false;
   }
 }
-
 async function logout(){
   try{
     const acc = msalApp.getAllAccounts()[0];
@@ -302,17 +371,14 @@ async function logout(){
   }
 }
 
-// Events
+/* ===== Events ===== */
 $("btnStart").addEventListener("click", start);
 $("btnLogout").addEventListener("click", logout);
 $("alumneSel").addEventListener("change", ()=>{
   updateChips();
   $("goStep2").disabled = $("alumneSel").selectedIndex<0;
 });
-$("goStep2").addEventListener("click", ()=>{
-  rebuildModulsForAlumne();
-  showStep(2);
-});
+$("goStep2").addEventListener("click", ()=>{ rebuildModulsForAlumne(); showStep(2); });
 $("backStep1").addEventListener("click", ()=>{ showStep(1); });
 $("modulSel").addEventListener("change", ()=>{
   $("btnContinue").disabled = $("modulSel").selectedIndex<0;
