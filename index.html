@@ -40,7 +40,7 @@
     .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--shadow);padding:18px}
     .muted{color:var(--muted)}
 
-    /* PROGRESS (only inside app) */
+    /* PROGRESS */
     .progress{position:relative;background:#eef2ff;border-radius:999px;height:12px;overflow:hidden}
     .progress>.bar{height:100%;width:calc(var(--pct,0)*1%);background:linear-gradient(90deg,#0e6efd,#34b3ff);transition:width .35s ease}
     .progress-label{margin-top:8px;font-size:12px;color:var(--muted)}
@@ -56,6 +56,8 @@
     .btn{padding:10px 14px;border-radius:10px;border:1px solid #1f2937;background:#111827;color:#fff;cursor:pointer}
     .btn:disabled{opacity:.6;cursor:not-allowed}
     .ok{color:#0a7c2f}.err{color:#b00020}
+
+    .actions{display:flex;gap:10px;margin-top:10px}
   </style>
 </head>
 <body>
@@ -80,7 +82,7 @@
     </div>
   </div>
 
-  <!-- App (Pas 1: selecció) -->
+  <!-- App -->
   <div class="wrap hidden" id="app">
     <div class="card">
       <div>
@@ -88,33 +90,45 @@
         <div class="progress-label" id="topLabel">Pàgina 1 de 10</div>
       </div>
 
-      <h2 style="margin:14px 0 6px">Selecció inicial</h2>
-
-      <fieldset>
-        <legend>Tria alumne i mòdul</legend>
-        <div class="row">
-          <div>
-            <label for="alumneSel">Alumne</label>
-            <select id="alumneSel"></select>
-          </div>
-          <div>
-            <label for="modulSel">Mòdul</label>
-            <select id="modulSel"></select>
-          </div>
-        </div>
-        <p id="noData" class="err" style="display:none;margin:.6rem 0 0;">
-          No tens cap alumne assignat (revisa <b>Assignacions</b> › <code>prof_email</code>).
-        </p>
+      <!-- PAS 1: Selecciona alumne -->
+      <section id="step1">
+        <h2 style="margin:14px 0 6px">Pas 1 · Tria alumne</h2>
+        <fieldset>
+          <legend>Alumne</legend>
+          <label for="alumneSel">Selecciona un alumne</label>
+          <select id="alumneSel"></select>
+          <p id="noData" class="err" style="display:none;margin:.6rem 0 0;">
+            No tens cap alumne assignat (revisa <b>Assignacions</b> › <code>prof_email</code>).
+          </p>
+        </fieldset>
         <div class="chips" aria-live="polite">
           <span class="chip" id="chipAlumne">Alumne: —</span>
+        </div>
+        <div class="actions">
+          <button class="btn" id="goStep2" disabled>Següent</button>
+          <span id="status1" class="muted"></span>
+        </div>
+      </section>
+
+      <!-- PAS 2: Selecciona mòdul (filtrat pel pas 1) -->
+      <section id="step2" class="hidden">
+        <h2 style="margin:14px 0 6px">Pas 2 · Tria mòdul</h2>
+        <fieldset>
+          <legend>Mòdul</legend>
+          <label for="modulSel">Selecciona un mòdul del grup de l'alumne</label>
+          <select id="modulSel"></select>
+        </fieldset>
+        <div class="chips" aria-live="polite">
+          <span class="chip" id="chipAlumne2">Alumne: —</span>
           <span class="chip" id="chipModul">Mòdul: —</span>
         </div>
-      </fieldset>
+        <div class="actions">
+          <button class="btn" id="backStep1">Enrere</button>
+          <button class="btn" id="btnContinue" disabled>Continua</button>
+          <span id="status2" class="muted"></span>
+        </div>
+      </section>
 
-      <div style="display:flex;gap:10px;margin-top:10px">
-        <button class="btn" id="btnContinue" disabled>Continua</button>
-        <span id="status" class="muted"></span>
-      </div>
     </div>
   </div>
 
@@ -159,7 +173,6 @@ setProgress(1);
 let currentUserEmail = null;
 let alumnes=[], assignacions=[];
 
-function log(msg, cls="muted"){ const el=$("status"); el.className=cls; el.textContent=msg; }
 function resetUI(){
   $("app").classList.add("hidden");
   $("appbar").classList.add("hidden");
@@ -168,11 +181,18 @@ function resetUI(){
   $("alumneSel").innerHTML = "";
   $("modulSel").innerHTML = "";
   $("chipAlumne").textContent = "Alumne: —";
+  $("chipAlumne2").textContent = "Alumne: —";
   $("chipModul").textContent  = "Mòdul: —";
+  $("goStep2").disabled = true;
   $("btnContinue").disabled = true;
-  currentUserEmail = null;
+  showStep(1);
   setProgress(1);
-  log("");
+}
+
+function showStep(n){
+  $("step1").classList.toggle("hidden", n!==1);
+  $("step2").classList.toggle("hidden", n!==2);
+  setProgress(n); // 1 o 2 de 10
 }
 
 async function getToken(){
@@ -201,46 +221,44 @@ async function loadTableRows(filePath, tableName){
   return { colNames, rows: rows.value.map(r=>r.values[0]) };
 }
 function requireColumns(actual, required, tableName){
-  for(const c of required) if(!actual.includes(c)) throw new Error(`Falta la columna "${c}" a la taula ${tableName}.`);
+  for(const c of required) if(!actual.includes(c)) throw new Error(`Falta la columna \"${c}\" a la taula ${tableName}.`);
 }
 
-function updateHeader(){
+function updateChips(){
   try{
     const a=$("alumneSel").value?JSON.parse($("alumneSel").value):{};
     const m=$("modulSel").value?JSON.parse($("modulSel").value):{};
     $("chipAlumne").textContent = "Alumne: " + (a.student_name||"—");
+    $("chipAlumne2").textContent = "Alumne: " + (a.student_name||"—");
     $("chipModul").textContent  = "Mòdul: "  + (m.module_name||"—");
-    $("btnContinue").disabled = !(a.student_id && m.module_code);
   }catch{}
 }
 
 function rebuildAlumnesForProfessor(){
-  const selA=$("alumneSel");
-  const selM=$("modulSel");
   if(!alumnes.length || !assignacions.length) return;
-
-  let alumnesSource=alumnes;
+  let source=alumnes;
   if(currentUserEmail){
     const pairs=new Set(assignacions.filter(x=>(x.prof_email||"").toLowerCase()===currentUserEmail).map(x=>`${x.course}||${x.group}`));
-    alumnesSource=alumnes.filter(a=>pairs.has(`${a.course}||${a.group}`));
+    source=alumnes.filter(a=>pairs.has(`${a.course}||${a.group}`));
   }
-
-  selA.innerHTML = alumnesSource.map(a=>`<option value='${JSON.stringify(a)}'>${a.student_name}${a.student_id?" ("+a.student_id+")":""}</option>`).join("");
-  const has = selA.options.length>0;
+  $("alumneSel").innerHTML = source.map(a=>`<option value='${JSON.stringify(a)}'>${a.student_name}${a.student_id?" ("+a.student_id+")":""}</option>`).join("");
+  const has = $("alumneSel").options.length>0;
   $("noData").style.display = has ? "none" : "block";
-  if(has) selA.selectedIndex=0;
+  if(has) $("alumneSel").selectedIndex=0;
+  $("goStep2").disabled = !has;
+  updateChips();
+}
 
-  const a = has ? JSON.parse(selA.value) : {};
+function rebuildModulsForAlumne(){
+  const a = $("alumneSel").value?JSON.parse($("alumneSel").value):{};
   const mods = assignacions.filter(m=> m.course===a.course && m.group===a.group && (!currentUserEmail || (m.prof_email||"").toLowerCase()===currentUserEmail));
-  selM.innerHTML = mods.map(m=>`<option value='${JSON.stringify(m)}'>${m.module_name}${m.module_code?" ("+m.module_code+")":""}</option>`).join("");
-  if(selM.options.length>0) selM.selectedIndex=0;
-
-  updateHeader();
+  $("modulSel").innerHTML = mods.map(m=>`<option value='${JSON.stringify(m)}'>${m.module_name}${m.module_code?" ("+m.module_code+")":""}</option>`).join("");
+  $("btnContinue").disabled = $("modulSel").options.length===0;
+  if($("modulSel").options.length>0) $("modulSel").selectedIndex=0;
+  updateChips();
 }
 
 async function initData(){
-  log("Carregant llistes d'Excel…");
-
   const A = await loadTableRows(config.refsFilePath, config.refsTables.alumnes);
   requireColumns(A.colNames, ["course","group","student_id","student_name","student_email"], "Alumnes");
   const ia=Object.fromEntries(A.colNames.map((n,i)=>[n,i]));
@@ -251,18 +269,8 @@ async function initData(){
   const is=Object.fromEntries(S.colNames.map((n,i)=>[n,i]));
   assignacions=S.rows.map(v=>({course:v[is.course],group:v[is.group],module_code:v[is.module_code],module_name:v[is.module_name],prof_email:v[is.prof_email]}));
 
-  $("alumneSel").addEventListener("change", ()=>{
-    const a = $("alumneSel").value?JSON.parse($("alumneSel").value):{};
-    const mods = assignacions.filter(m=> m.course===a.course && m.group===a.group && (!currentUserEmail || (m.prof_email||"").toLowerCase()===currentUserEmail));
-    $("modulSel").innerHTML = mods.map(m=>`<option value='${JSON.stringify(m)}'>${m.module_name}${m.module_code?" ("+m.module_code+")":""}</option>`).join("");
-    if($("modulSel").options.length>0) $("modulSel").selectedIndex=0;
-    updateHeader();
-  });
-  $("modulSel").addEventListener("change", updateHeader);
-
   rebuildAlumnesForProfessor();
-  $("whoami").textContent = currentUserEmail || "—";
-  log("Llistes carregades.","ok");
+  updateChips();
 }
 
 async function start(){
@@ -274,6 +282,7 @@ async function start(){
     $("hero").classList.add("hidden");
     $("appbar").classList.remove("hidden");
     $("app").classList.remove("hidden");
+    showStep(1);
     await initData();
   }catch(e){
     console.error(e);
@@ -293,13 +302,27 @@ async function logout(){
   }
 }
 
+// Events
 $("btnStart").addEventListener("click", start);
+$("btnLogout").addEventListener("click", logout);
+$("alumneSel").addEventListener("change", ()=>{
+  updateChips();
+  $("goStep2").disabled = $("alumneSel").selectedIndex<0;
+});
+$("goStep2").addEventListener("click", ()=>{
+  rebuildModulsForAlumne();
+  showStep(2);
+});
+$("backStep1").addEventListener("click", ()=>{ showStep(1); });
+$("modulSel").addEventListener("change", ()=>{
+  $("btnContinue").disabled = $("modulSel").selectedIndex<0;
+  updateChips();
+});
 $("btnContinue").addEventListener("click", ()=>{
   alert("Perfecte! Selecció guardada.\n(Quan vulguis, afegim la resta de passos.)");
 });
-$("btnLogout").addEventListener("click", logout);
 
-// Si ja hi ha sessió oberta, entra directe
+// Autologin si hi ha sessió
 msalApp.handleRedirectPromise().then(async ()=>{
   const acc=msalApp.getAllAccounts()[0];
   if(acc){
@@ -308,6 +331,7 @@ msalApp.handleRedirectPromise().then(async ()=>{
     $("hero").classList.add("hidden");
     $("appbar").classList.remove("hidden");
     $("app").classList.remove("hidden");
+    showStep(1);
     await initData();
   }
 }).catch(e=>console.error(e));
