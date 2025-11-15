@@ -14,7 +14,10 @@
     }
     *{box-sizing:border-box}
     body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
-    a{color:var(--primary)} .hidden{display:none!important}
+    a{color:var(--primary)}
+    .hidden{display:none!important}
+
+    /* HERO (pre-login) */
     .hero{position:relative;min-height:82vh;display:grid;place-items:center;padding:24px;
       background:linear-gradient(120deg,#0e6efd 0%, #34b3ff 100%);color:#fff;overflow:hidden}
     .hero .container{max-width:980px;display:grid;grid-template-columns:1fr;gap:28px;align-items:center}
@@ -23,45 +26,63 @@
     .hero .cta{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;background:#fff;color:#0b57d0;border:0;cursor:pointer;font-weight:600;box-shadow:var(--shadow)}
     .hero .cta:focus{outline:none;box-shadow:var(--focus)}
     .hero small{opacity:.85}
+
+    /* APP BAR (post-login) */
     .appbar{position:sticky;top:0;z-index:50;background:#ffffffd9;backdrop-filter:blur(6px);
       border-bottom:1px solid var(--bd);box-shadow:0 6px 18px rgba(16,24,40,.06)}
     .appbar-inner{max-width:980px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
     .who{color:#334155;font-size:14px}
     .logout{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:8px 12px;cursor:pointer}
     .logout:hover{background:#f8f9fb}
+
+    /* APP */
     .wrap{max-width:900px;margin:24px auto 32px;padding:0 16px}
     .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--shadow);padding:18px}
     .muted{color:var(--muted)}
+
+    /* PROGRESS (only inside app) */
     .progress{position:relative;background:#eef2ff;border-radius:999px;height:12px;overflow:hidden}
     .progress>.bar{height:100%;width:calc(var(--pct,0)*1%);background:linear-gradient(90deg,#0e6efd,#34b3ff);transition:width .35s ease}
     .progress-label{margin-top:8px;font-size:12px;color:var(--muted)}
+
+    /* GENERIC FORM / BUTTONS */
     fieldset{border:1px solid var(--bd);border-radius:12px;padding:14px;margin:14px 0}
-    legend{padding:0 6px} label{display:block;font-weight:600;margin:8px 0 6px}
-    select{width:100%;padding:10px 12px;border:1px solid #cfd4dc;border-radius:10px;background:#fff}
-    .chips{display:flex;gap:10px;flex-wrap:wrap;margin:10px 0 0}
-    .chip{background:#f2f4f7;border:1px solid var(--bd);padding:6px 10px;border-radius:999px;font-size:12px}
+    legend{padding:0 6px}
+    label{display:block;font-weight:600;margin:8px 0 6px}
+    select, textarea{width:100%;padding:10px 12px;border:1px solid #cfd4dc;border-radius:10px;background:#fff;font-family:inherit;font-size:14px}
+    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
     .btn{padding:10px 14px;border-radius:10px;border:1px solid #1f2937;background:#111827;color:#fff;cursor:pointer}
+    .btn-small{padding:6px 10px;font-size:13px}
     .btn:disabled{opacity:.6;cursor:not-allowed}
     .ok{color:#0a7c2f}.err{color:#b00020}
-    .actions{display:flex;gap:10px;margin-top:10px}
-    .toast{margin-top:8px;font-size:14px}
+
+    /* TABLES */
+    table{width:100%;border-collapse:collapse;margin-top:10px}
+    th,td{border:1px solid #e5e7eb;padding:6px 8px;font-size:14px;text-align:left}
+    th{background:#f9fafb;font-weight:600}
+    tr.clickable-row{cursor:pointer}
+    tr.clickable-row:hover{background:#eef2ff}
+
+    .pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:500}
+    .pill.done{background:#ecfdf3;color:#027a48;border:1px solid #86efac}
+    .pill.pending{background:#fff7ed;color:#c05621;border:1px solid #fed7aa}
   </style>
 </head>
 <body>
 
-  <!-- Portada -->
+  <!-- Portada (sense barra de progrés) -->
   <section class="hero" id="hero">
     <div class="container">
       <div>
         <h1>Preavaluació<br><span style="opacity:.92;font-weight:600;">1r de SMX / DAM</span></h1>
-        <p>Inicia sessió per accedir a la preavaluació. Et mostrarem només els teus alumnes i mòduls.</p>
+        <p>Inicia sessió per accedir a la preavaluació. Et mostrarem només els teus mòduls i alumnes.</p>
         <button id="btnStart" class="cta">Inicia ara</button>
         <p class="muted"><small>Cal compte del centre (Microsoft 365).</small></p>
       </div>
     </div>
   </section>
 
-  <!-- Barra superior -->
+  <!-- Barra superior amb nom del professor + Tanca sessió (només post-login) -->
   <div class="appbar hidden" id="appbar">
     <div class="appbar-inner">
       <span class="who" id="whoami">—</span>
@@ -69,58 +90,107 @@
     </div>
   </div>
 
-  <!-- App -->
+  <!-- Aplicació principal (mòduls → alumnes → formulari) -->
   <div class="wrap hidden" id="app">
     <div class="card">
       <div>
-        <div class="progress" aria-hidden="true"><div class="bar" id="topBar" style="--pct:10"></div></div>
-        <div class="progress-label" id="topLabel">Pàgina 1 de 10</div>
+        <div class="progress" aria-hidden="true"><div class="bar" id="topBar" style="--pct:33"></div></div>
+        <div class="progress-label" id="topLabel">Pas 1 de 3</div>
       </div>
 
-      <!-- PAS 1 -->
-      <section id="step1">
-        <h2 style="margin:14px 0 6px">Pas 1 · Tria alumne</h2>
-        <fieldset>
-          <legend>Alumne</legend>
-          <label for="alumneSel">Selecciona un alumne</label>
-          <select id="alumneSel"></select>
-          <p id="noData" class="err" style="display:none;margin:.6rem 0 0;">
-            No tens cap alumne assignat (revisa <b>Assignacions</b> › <code>prof_email</code>).
-          </p>
-        </fieldset>
-        <div class="chips" aria-live="polite">
-          <span class="chip" id="chipAlumne">Alumne: —</span>
+      <!-- Vista 1: Mòduls del professor -->
+      <section id="view-modules">
+        <h2 style="margin:14px 0 6px">Mòduls assignats</h2>
+        <p class="muted" id="modulesIntro">
+          Selecciona un mòdul per veure els alumnes i l'estat de la preavaluació.
+        </p>
+        <table aria-describedby="modulesIntro">
+          <thead>
+            <tr>
+              <th>Mòdul</th>
+              <th>Codi</th>
+              <th>Alumnes preavaluats</th>
+              <th>Accions</th>
+            </tr>
+          </thead>
+          <tbody id="modulesTableBody"></tbody>
+        </table>
+        <p class="muted" id="noModules" style="display:none;margin-top:10px;">
+          No s'ha trobat cap mòdul assignat per a aquest professor.
+        </p>
+      </section>
+
+      <!-- Vista 2: Alumnes d'un mòdul -->
+      <section id="view-students" class="hidden">
+        <button type="button" class="btn btn-small" id="btnBackToModules">← Torna als mòduls</button>
+        <h2 id="studentsModuleTitle" style="margin:14px 0 6px">Alumnes del mòdul</h2>
+        <p class="muted" id="studentsModuleSummary"></p>
+
+        <div class="row" style="margin-top:10px;align-items:flex-end;">
+          <div>
+            <label for="filterStatus">Filtre</label>
+            <select id="filterStatus">
+              <option value="all">Tots els alumnes</option>
+              <option value="pending">Només pendents</</option>
+              <option value="done">Només amb preavaluació</option>
+            </select>
+          </div>
         </div>
-        <div class="actions">
-          <button class="btn" id="goStep2" disabled>Següent</button>
-          <span id="status1" class="muted toast"></span>
+
+        <table aria-describedby="studentsModuleSummary">
+          <thead>
+            <tr>
+              <th>Alumne</th>
+              <th>Curs / Grup</th>
+              <th>Estat</th>
+              <th>Accions</th>
+            </tr>
+          </thead>
+          <tbody id="studentsTableBody"></tbody>
+        </table>
+
+        <p class="muted" id="noStudents" style="display:none;margin-top:10px;">
+          No hi ha alumnes per a aquest mòdul.
+        </p>
+      </section>
+
+      <!-- Vista 3: Formulari de preavaluació -->
+      <section id="view-form" class="hidden">
+        <button type="button" class="btn btn-small" id="btnBackToStudents">← Torna als alumnes</button>
+
+        <h2 id="formTitle" style="margin:14px 0 6px">Preavaluació</h2>
+        <p class="muted" id="formSubtitle"></p>
+
+        <fieldset>
+          <legend>Resum de la situació</legend>
+          <label for="preComment">Comentaris sobre l'alumne</label>
+          <textarea id="preComment" rows="4" placeholder="Comentaris sobre assistència, actitud, treball, etc."></textarea>
+        </fieldset>
+
+        <fieldset>
+          <legend>Recomanació</legend>
+          <label for="preRecommendation">Recomanació per al tutor</label>
+          <select id="preRecommendation">
+            <option value="">— Selecciona una opció —</option>
+            <option value="positiva">Evolució positiva, continuar igual</option>
+            <option value="millorable">Cal millorar alguns aspectes</option>
+            <option value="seguiment">Requereix seguiment proper</option>
+          </select>
+        </fieldset>
+
+        <div style="display:flex;gap:10px;margin-top:10px;align-items:center;">
+          <button type="button" class="btn" id="btnSaveForm">Desa la preavaluació</button>
+          <span id="saveStatus" class="muted"></span>
         </div>
       </section>
 
-      <!-- PAS 2 -->
-      <section id="step2" class="hidden">
-        <h2 style="margin:14px 0 6px">Pas 2 · Tria mòdul</h2>
-        <fieldset>
-          <legend>Mòdul</legend>
-          <label for="modulSel">Selecciona un mòdul del grup de l'alumne</label>
-          <select id="modulSel"></select>
-        </fieldset>
-        <div class="chips" aria-live="polite">
-          <span class="chip" id="chipAlumne2">Alumne: —</span>
-          <span class="chip" id="chipModul">Mòdul: —</span>
-        </div>
-        <div class="actions">
-          <button class="btn" id="backStep1">Enrere</button>
-          <button class="btn" id="btnContinue" disabled>Continua</button>
-          <span id="status2" class="muted toast"></span>
-        </div>
-      </section>
-
+      <!-- Missatges generals -->
+      <p id="status" class="muted" style="margin-top:12px;"></p>
     </div>
   </div>
 
 <script>
-/* ====== CONFIG ====== */
+/* ========= CONFIGURACIÓ BÀSICA ========= */
 const path = window.location.pathname.endsWith(".html")
   ? window.location.pathname
   : (window.location.pathname.endsWith("/") ? window.location.pathname : window.location.pathname + "/");
@@ -131,15 +201,26 @@ const config = {
   tenantId: "f6fbd66a-02b9-4804-8f74-b16600cf5e00",
   redirectUri: redirectGuess,
 
-  // ENLLAÇ COMPARTIT DEL TEU EXCEL (OneDrive, “Anyone in org with link can edit/view”)
-    sharedLink: "https://gmqualitytechnologysl365-my.sharepoint.com/:x:/g/personal/jpardo20_digitechfp_com/IQCjtGM5iqDARr3Fh1LpzsB6AYE049kU-pr-WRdIIhaEA5g?e=xCr8B7",
+  // Si els arxius són a un site de SharePoint, posa useSharePointSite a true
+  useSharePointSite: false,
+  sharePoint: { hostname: "ELTEUTENANT.sharepoint.com", sitePath: "/sites/ElMeuSite" },
 
+  // Fitxer de referències (Alumnes, Assignacions, Professors)
+  refsFilePath: "/tutoria/Preavaluacio/referencies.xlsx",
+  refsTables: {
+    alumnes: "Alumnes",
+    assign: "Assignacions",
+    professors: "Professors"
+  },
 
-  refsTables: { alumnes: "Alumnes", assign: "Assignacions" }
+  // Fitxer amb les preavaluacions guardades
+  preFilePath: "/tutoria/Preavaluacio/preavaluacions.xlsx",
+  preTableName: "Preavaluacions"
 };
-const PROG_TOTAL = 10;
-/* ===================== */
 
+const PROG_TOTAL = 3;
+
+/* ========= MSAL + GRAPH ========= */
 const msalConfig = {
   auth: {
     clientId: config.clientId,
@@ -148,209 +229,627 @@ const msalConfig = {
   },
   cache: { cacheLocation: "localStorage", storeAuthStateInCookie: false }
 };
-const graphScopes = ["User.Read","Files.ReadWrite"]; // prou per a enllaç compartit
 
+const graphScopes = ["User.Read","Files.ReadWrite", ...(config.useSharePointSite ? ["Sites.ReadWrite.All"] : [])];
 const msalApp = new msal.PublicClientApplication(msalConfig);
-const $ = (id)=>document.getElementById(id);
-const setProgress = (step)=>{
+
+const $ = (id) => document.getElementById(id);
+
+function setProgress(step){
   const pct = Math.max(1, Math.min(PROG_TOTAL, step)) / PROG_TOTAL * 100;
   $("topBar").style.setProperty("--pct", pct);
-  $("topLabel").textContent  = `Pàgina ${step} de ${PROG_TOTAL}`;
-};
+  $("topLabel").textContent = `Pas ${step} de ${PROG_TOTAL}`;
+}
 setProgress(1);
 
 let currentUserEmail = null;
-let alumnes=[], assignacions=[];
-let workbookSessionId = null;
-let driveBase = null; // https://graph.microsoft.com/v1.0/drives/{driveId}/items/{itemId}
+let alumnes = [];
+let assignacions = [];
+let professors = [];
+let preevaluacions = [];
+let preCols = [];
+let preFileUrlCache = null;
 
-/* ===== UI helpers ===== */
-function showStep(n){ $("step1").classList.toggle("hidden", n!==1); $("step2").classList.toggle("hidden", n!==2); setProgress(n); }
+let currentProfessor = null;
+let currentModule = null;     // { module_code, module_name }
+let currentStudentsInModule = [];
+let currentStudent = null;    // alumne seleccionat
+let currentPreeval = null;    // objecte de preavaluació per aquest alumne+modul (o null);
+
+/* ========= UTILITATS ========= */
+function log(msg, cls="muted"){
+  const el = $("status");
+  el.className = cls;
+  el.textContent = msg || "";
+}
+
+function showView(view){
+  const v1 = $("view-modules");
+  const v2 = $("view-students");
+  const v3 = $("view-form");
+  v1.classList.add("hidden");
+  v2.classList.add("hidden");
+  v3.classList.add("hidden");
+
+  if(view === "modules"){ v1.classList.remove("hidden"); setProgress(1); }
+  else if(view === "students"){ v2.classList.remove("hidden"); setProgress(2); }
+  else { v3.classList.remove("hidden"); setProgress(3); }
+}
+
 function resetUI(){
-  $("app").classList.add("hidden"); $("appbar").classList.add("hidden"); $("hero").classList.remove("hidden");
-  $("whoami").textContent = "—"; $("alumneSel").innerHTML = ""; $("modulSel").innerHTML = "";
-  $("chipAlumne").textContent = "Alumne: —"; $("chipAlumne2").textContent = "Alumne: —"; $("chipModul").textContent = "Mòdul: —";
-  $("goStep2").disabled = true; $("btnContinue").disabled = true; workbookSessionId = null; driveBase = null; showStep(1); setProgress(1); statusMsg("");
+  $("app").classList.add("hidden");
+  $("appbar").classList.add("hidden");
+  $("hero").classList.remove("hidden");
+  $("whoami").textContent = "—";
+  currentUserEmail = null;
+  alumnes = [];
+  assignacions = [];
+  professors = [];
+  preevaluacions = [];
+  preCols = [];
+  preFileUrlCache = null;
+  currentProfessor = null;
+  currentModule = null;
+  currentStudentsInModule = [];
+  currentStudent = null;
+  currentPreeval = null;
+  setProgress(1);
+  log("");
+  $("modulesTableBody").innerHTML = "";
+  $("studentsTableBody").innerHTML = "";
+  $("preComment").value = "";
+  $("preRecommendation").value = "";
+  $("saveStatus").textContent = "";
 }
-function statusMsg(msg, where="status1", cls="muted"){ const el = $(where); if(!el) return; el.className = cls + " toast"; el.textContent = msg || ""; }
 
-/* ===== Graph helpers ===== */
-function base64UrlEncode(str){ return btoa(str).replace(/\+/g,'-').replace(/\//g,'_').replace(/=+$/,''); }
+/* GRAPH helpers */
 async function getToken(){
-  const req={ account: msalApp.getAllAccounts()[0], scopes: graphScopes };
-  try{ return (await msalApp.acquireTokenSilent(req)).accessToken; }
-  catch{ return (await msalApp.acquireTokenPopup({scopes:graphScopes})).accessToken; }
-}
-async function gfetch(url,opts={}, useWorkbookHeader=true){
-  const token=await getToken();
-  const headers = { "Authorization":`Bearer ${token}`, "Content-Type":"application/json", ...(opts.headers||{}) };
-  if(useWorkbookHeader && workbookSessionId){ headers["workbook-session-id"] = workbookSessionId; }
-  const r=await fetch(url,{...opts,headers});
-  if(!r.ok){
-    let detail = ""; try{ detail = await r.text(); }catch{}
-    const error = new Error(`HTTP ${r.status} ${r.statusText} :: ${detail}`); error.status = r.status; error.body = detail; throw error;
+  const account = msalApp.getAllAccounts()[0];
+  const req = { account, scopes: graphScopes };
+  try{
+    return (await msalApp.acquireTokenSilent(req)).accessToken;
+  }catch(e){
+    return (await msalApp.acquireTokenPopup({ scopes: graphScopes })).accessToken;
   }
-  if(r.status===204) return null;
+}
+
+async function gfetch(url, opts={}){
+  const token = await getToken();
+  const r = await fetch(url, {
+    ...opts,
+    headers: {
+      "Authorization": `Bearer ${token}`,
+      "Content-Type": "application/json",
+      ...(opts.headers || {})
+    }
+  });
+  if(!r.ok){
+    let msg = "";
+    try{ msg = await r.text(); }catch{}
+    throw new Error(msg || (r.status + " error"));
+  }
   return r.json();
 }
-function niceGraphError(e){
-  let msg = e.message || String(e);
-  try{
-    const body = JSON.parse(e.body || "{}");
-    if(body && body.error){
-      const code = body.error.code || ""; const message = body.error.message || msg;
-      if(e.status===404 || /ItemNotFound/i.test(code)){ msg = "No trobo el fitxer d'origen (404). Revisa l'enllaç compartit o els permisos."; }
-      else if(e.status===403 || /accessDenied/i.test(code)){ msg = "No tens permisos per accedir al fitxer (403). Revisa la configuració de l'enllaç."; }
-      else if(e.status===423 || /Locked/i.test(code)){ msg = "El fitxer està en ús (423). Tanca l'Excel i torna-ho a provar."; }
-      else { msg = message; }
+
+function graphBase(){
+  return config.useSharePointSite
+    ? `https://graph.microsoft.com/v1.0/sites/${config.sharePoint.hostname}:${config.sharePoint.sitePath}:/drive`
+    : "https://graph.microsoft.com/v1.0/me/drive";
+}
+
+function graphPathToFile(base, path){
+  return `${base}/root:${encodeURI(path)}:`;
+}
+
+async function loadTableRows(filePath, tableName){
+  const base = graphBase();
+  const fileUrl = graphPathToFile(base, filePath);
+  const cols = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(tableName)}/columns`);
+  const colNames = cols.value.map(c => c.name);
+  const rows = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(tableName)}/rows`);
+  return { colNames, rows: rows.value.map(r => r.values[0]) };
+}
+
+function requireColumns(actual, required, tableName){
+  for(const c of required){
+    if(!actual.includes(c)){
+      throw new Error(`Falta la columna "${c}" a la taula ${tableName}.`);
     }
-  }catch{}
-  return msg;
-}
-
-/* ===== Resolve shared link to /drives/{id}/items/{id} (AAD safe) ===== */
-async function resolveSharedLinkBase(sharedLink){
-  const enc = base64UrlEncode(sharedLink);
-  const info = await gfetch(`https://graph.microsoft.com/v1.0/shares/u!${enc}/driveItem?$select=id,name,parentReference`,
-    { method:"GET" }, false);
-  const itemId = info.id;
-  const driveId = info.parentReference && (info.parentReference.driveId || info.parentReference.id);
-  if(!itemId || !driveId) throw new Error("No he pogut resoldre driveId/itemId des de l'enllaç compartit.");
-  return `https://graph.microsoft.com/v1.0/drives/${driveId}/items/${itemId}`;
-}
-
-/* ===== Workbook helpers ===== */
-async function ensureWorkbookSession(){
-  if(workbookSessionId) return workbookSessionId;
-  if(!driveBase) throw new Error("driveBase no inicialitzat.");
-  try{
-    const s = await gfetch(`${driveBase}/workbook/createSession`, { method:"POST", body: JSON.stringify({persistChanges:false}) }, false);
-    workbookSessionId = s.id; return workbookSessionId;
-  }catch(e){
-    console.warn("No s'ha pogut crear la sessió de workbook:", e);
-    workbookSessionId = null; return null;
   }
 }
-async function loadTableRows(tableName){
-  if(!driveBase) throw new Error("driveBase no inicialitzat.");
-  await ensureWorkbookSession();
-  const cols = await gfetch(`${driveBase}/workbook/tables/${encodeURIComponent(tableName)}/columns`);
-  const colNames = cols.value.map(c=>c.name);
-  const rows = await gfetch(`${driveBase}/workbook/tables/${encodeURIComponent(tableName)}/rows`);
-  return { colNames, rows: rows.value.map(r=>r.values[0]) };
-}
-function requireColumns(actual, required, tableName){ for(const c of required) if(!actual.includes(c)) throw new Error(`Falta la columna "${c}" a la taula ${tableName}.`); }
 
-/* ===== Dades i UI ===== */
-function updateChips(){
-  try{
-    const a=$("alumneSel").value?JSON.parse($("alumneSel").value):{};
-    const m=$("modulSel").value?JSON.parse($("modulSel").value):{};
-    $("chipAlumne").textContent = "Alumne: " + (a.student_name||"—");
-    $("chipAlumne2").textContent = "Alumne: " + (a.student_name||"—");
-    $("chipModul").textContent  = "Mòdul: "  + (m.module_name||"—");
-  }catch{}
-}
-function rebuildAlumnesForProfessor(){
-  if(!alumnes.length || !assignacions.length) return;
-  let source=alumnes;
-  if(currentUserEmail){
-    const pairs=new Set(assignacions.filter(x=>(x.prof_email||"").toLowerCase()===currentUserEmail).map(x=>`${x.course}||${x.group}`));
-    source=alumnes.filter(a=>pairs.has(`${a.course}||${a.group}`));
-  }
-  $("alumneSel").innerHTML = source.map(a=>`<option value='${JSON.stringify(a)}'>${a.student_name}${a.student_id? " ("+a.student_id+")": ""}</option>`).join("");
-  const has = $("alumneSel").options.length>0;
-  $("noData").style.display = has ? "none" : "block";
-  if(has) $("alumneSel").selectedIndex=0;
-  $("goStep2").disabled = !has;
-  updateChips();
-}
-function rebuildModulsForAlumne(){
-  const a = $("alumneSel").value?JSON.parse($("alumneSel").value):{};
-  const mods = assignacions.filter(m=> m.course===a.course && m.group===a.group && (!currentUserEmail || (m.prof_email||"").toLowerCase()===currentUserEmail));
-  $("modulSel").innerHTML = mods.map(m=>`<option value='${JSON.stringify(m)}'>${m.module_name}${m.module_code?" ("+m.module_code+")":""}</option>`).join("");
-  $("btnContinue").disabled = $("modulSel").options.length===0;
-  if($("modulSel").options.length>0) $("modulSel").selectedIndex=0;
-  updateChips();
-}
-
+/* ========= CÀRREGA DE DADES ========= */
 async function initData(){
+  log("Carregant dades d'Excel…");
+
+  // 1) Alumnes
+  const A = await loadTableRows(config.refsFilePath, config.refsTables.alumnes);
+  requireColumns(A.colNames, ["course","group","student_id","student_name","student_email"], "Alumnes");
+  const ia = Object.fromEntries(A.colNames.map((n,i) => [n,i]));
+  alumnes = A.rows.map(v => ({
+    course: v[ia.course],
+    group: v[ia.group],
+    student_id: v[ia.student_id],
+    student_name: v[ia.student_name],
+    student_email: v[ia.student_email]
+  }));
+
+  // 2) Assignacions
+  const S = await loadTableRows(config.refsFilePath, config.refsTables.assign);
+  requireColumns(S.colNames, ["course","group","module_code","module_name","prof_email"], "Assignacions");
+  const is = Object.fromEntries(S.colNames.map((n,i) => [n,i]));
+  assignacions = S.rows.map(v => ({
+    course: v[is.course],
+    group: v[is.group],
+    module_code: v[is.module_code],
+    module_name: v[is.module_name],
+    prof_email: (v[is.prof_email] || "").toLowerCase()
+  }));
+
+  // 3) Professors (opcional però recomanat)
   try{
-    statusMsg("Resoldre enllaç compartit…","status1");
-    driveBase = await resolveSharedLinkBase(config.sharedLink); // AAD compatible
-    statusMsg("Carregant llistes d'Excel…","status1");
-    const A = await loadTableRows(config.refsTables.alumnes);
-    requireColumns(A.colNames, ["course","group","student_id","student_name","student_email"], "Alumnes");
-    const ia=Object.fromEntries(A.colNames.map((n,i)=>[n,i]));
-    alumnes=A.rows.map(v=>({course:v[ia.course],group:v[ia.group],student_id:v[ia.student_id],student_name:v[ia.student_name],student_email:v[ia.student_email]}));
+    const P = await loadTableRows(config.refsFilePath, config.refsTables.professors);
+    requireColumns(P.colNames, ["prof_email","profe_name","profe_lastname"], "Professors");
+    const ip = Object.fromEntries(P.colNames.map((n,i) => [n,i]));
+    professors = P.rows.map(v => ({
+      prof_email: (v[ip.prof_email] || "").toLowerCase(),
+      profe_name: v[ip.profe_name] || "",
+      profe_lastname: v[ip.profe_lastname] || ""
+    }));
+  }catch(e){
+    console.warn("No s'ha pogut llegir la taula Professors (es mostrarà només el correu).", e);
+    professors = [];
+  }
 
-    const S = await loadTableRows(config.refsTables.assign);
-    requireColumns(S.colNames, ["course","group","module_code","module_name","prof_email"], "Assignacions");
-    const is=Object.fromEntries(S.colNames.map((n,i)=>[n,i]));
-    assignacions=S.rows.map(v=>({course:v[is.course],group:v[is.group],module_code:v[is.module_code],module_name:v[is.module_name],prof_email:v[is.prof_email]}));
+  // 4) Preevaluacions (pot ser buida al principi)
+  try{
+    const base = graphBase();
+    const fileUrl = graphPathToFile(base, config.preFilePath);
+    preFileUrlCache = fileUrl;
 
-    rebuildAlumnesForProfessor();
-    updateChips();
-    statusMsg("Llistes carregades.","status1","ok");
+    const cols = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(config.preTableName)}/columns`);
+    preCols = cols.value.map(c => c.name);
+
+    // Columnes mínimes necessàries
+    requireColumns(preCols, ["prof_email","course","group","module_code","student_id","comments","recommendation"], "Preavaluacions");
+
+    const rowsRes = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(config.preTableName)}/rows`);
+    const rows = rowsRes.value || [];
+    const ipre = Object.fromEntries(preCols.map((n,i) => [n,i]));
+
+    preevaluacions = rows.map((r, idx) => {
+      const v = r.values[0];
+      const idxRow = (typeof r.index === "number") ? r.index : idx;
+      return {
+        _rowIndex: idxRow,
+        rawValues: v.slice(),
+        prof_email: (v[ipre.prof_email] || "").toLowerCase(),
+        course: v[ipre.course] || "",
+        group: v[ipre.group] || "",
+        module_code: v[ipre.module_code] || "",
+        student_id: v[ipre.student_id] || "",
+        comments: v[ipre.comments] || "",
+        recommendation: v[ipre.recommendation] || ""
+      };
+    });
+  }catch(e){
+    console.warn("No s'ha pogut llegir la taula de Preavaluacions (es crearà a mesura que desis).", e);
+    preevaluacions = [];
+    preCols = ["prof_email","course","group","module_code","student_id","comments","recommendation"];
+    preFileUrlCache = null; // es tornarà a calcular quan calgui
+  }
+
+  // 5) Actualitza capçalera i vistes
+  updateProfessorHeader();
+  renderModules();
+  log("Dades carregades correctament.","ok");
+}
+
+/* ========= PROFESSOR ACTUAL ========= */
+function updateProfessorHeader(){
+  currentProfessor = null;
+  if(currentUserEmail){
+    const lower = currentUserEmail.toLowerCase();
+    currentProfessor = professors.find(p => p.prof_email === lower) || null;
+  }
+  if(currentProfessor){
+    $("whoami").textContent = `${currentProfessor.profe_name} ${currentProfessor.profe_lastname} (${currentUserEmail})`;
+  }else{
+    $("whoami").textContent = currentUserEmail || "—";
+  }
+}
+
+/* ========= HELPERS DE NEGOCI ========= */
+function hasPreevaluation(profEmail, moduleCode, studentId){
+  const email = (profEmail || "").toLowerCase();
+  const sid = String(studentId || "");
+  return preevaluacions.some(p =>
+    p.prof_email === email &&
+    p.module_code === moduleCode &&
+    String(p.student_id) === sid
+  );
+}
+
+function findPreevaluation(profEmail, moduleCode, studentId){
+  const email = (profEmail || "").toLowerCase();
+  const sid = String(studentId || "");
+  return preevaluacions.find(p =>
+    p.prof_email === email &&
+    p.module_code === moduleCode &&
+    String(p.student_id) === sid
+  ) || null;
+}
+
+function getModulesForCurrentProfessor(){
+  if(!currentUserEmail) return [];
+  const email = currentUserEmail.toLowerCase();
+  const mine = assignacions.filter(a => a.prof_email === email);
+  const seen = new Set();
+  const res = [];
+  for(const a of mine){
+    const key = `${a.module_code}||${a.module_name}`;
+    if(!seen.has(key)){
+      seen.add(key);
+      res.push({ module_code: a.module_code, module_name: a.module_name });
+    }
+  }
+  return res;
+}
+
+function getStudentsForModule(moduleCode){
+  if(!currentUserEmail) return [];
+  const email = currentUserEmail.toLowerCase();
+  const assignmentsForModule = assignacions.filter(a => a.prof_email === email && a.module_code === moduleCode);
+  if(!assignmentsForModule.length) return [];
+  const allowedPairs = new Set(assignmentsForModule.map(a => `${a.course}||${a.group}`));
+  return alumnes.filter(stu => allowedPairs.has(`${stu.course}||${stu.group}`));
+}
+
+/* ========= RENDERITZAT DE VISTES ========= */
+function renderModules(){
+  const tbody = $("modulesTableBody");
+  tbody.innerHTML = "";
+  const modules = getModulesForCurrentProfessor();
+  if(!modules.length){
+    $("noModules").style.display = "block";
+    showView("modules");
+    return;
+  }
+  $("noModules").style.display = "none";
+
+  modules.forEach(mod => {
+    const students = getStudentsForModule(mod.module_code);
+    const total = students.length;
+    let done = 0;
+    students.forEach(stu => {
+      if(hasPreevaluation(currentUserEmail, mod.module_code, stu.student_id)) done++;
+    });
+
+    const tr = document.createElement("tr");
+    tr.className = "clickable-row";
+    tr.addEventListener("click", () => openModule(mod));
+
+    const tdName = document.createElement("td");
+    tdName.textContent = mod.module_name || "—";
+
+    const tdCode = document.createElement("td");
+    tdCode.textContent = mod.module_code || "—";
+
+    const tdCount = document.createElement("td");
+    tdCount.textContent = total ? `${done} / ${total}` : "0 / 0";
+
+    const tdAction = document.createElement("td");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn btn-small";
+    btn.textContent = "Veure alumnes";
+    btn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      openModule(mod);
+    });
+    tdAction.appendChild(btn);
+
+    tr.appendChild(tdName);
+    tr.appendChild(tdCode);
+    tr.appendChild(tdCount);
+    tr.appendChild(tdAction);
+    tbody.appendChild(tr);
+  });
+
+  showView("modules");
+}
+
+function openModule(mod){
+  currentModule = mod;
+  currentStudentsInModule = getStudentsForModule(mod.module_code);
+  renderStudents();
+  showView("students");
+}
+
+function renderStudents(){
+  const tbody = $("studentsTableBody");
+  tbody.innerHTML = "";
+  const filter = $("filterStatus").value || "all";
+  const students = currentStudentsInModule || [];
+  const email = currentUserEmail || "";
+  const modCode = currentModule ? currentModule.module_code : "";
+
+  const total = students.length;
+  let doneCount = 0;
+  students.forEach(stu => {
+    if(hasPreevaluation(email, modCode, stu.student_id)) doneCount++;
+  });
+
+  $("studentsModuleTitle").textContent = currentModule
+    ? `Alumnes del mòdul ${currentModule.module_name || ""} (${currentModule.module_code || ""})`
+    : "Alumnes del mòdul";
+  $("studentsModuleSummary").textContent = total
+    ? `${doneCount} de ${total} alumnes tenen preavaluació.`
+    : "Aquest mòdul no té cap alumne assignat.";
+
+  if(!total){
+    $("noStudents").style.display = "block";
+    return;
+  }
+  $("noStudents").style.display = "none";
+
+  students.forEach(stu => {
+    const isDone = hasPreevaluation(email, modCode, stu.student_id);
+    if(filter === "pending" && isDone) return;
+    if(filter === "done" && !isDone) return;
+
+    const tr = document.createElement("tr");
+    tr.className = "clickable-row";
+    tr.addEventListener("click", () => openFormForStudent(stu));
+
+    const tdName = document.createElement("td");
+    tdName.textContent = `${stu.student_name || "—"} (${stu.student_id || "?"})`;
+
+    const tdGroup = document.createElement("td");
+    tdGroup.textContent = `${stu.course || ""} / ${stu.group || ""}`;
+
+    const tdStatus = document.createElement("td");
+    const span = document.createElement("span");
+    span.className = "pill " + (isDone ? "done" : "pending");
+    span.textContent = isDone ? "Fet" : "Pendent";
+    tdStatus.appendChild(span);
+
+    const tdAction = document.createElement("td");
+    const btn = document.createElement("button");
+    btn.type = "button";
+    btn.className = "btn btn-small";
+    btn.textContent = isDone ? "Veure / editar" : "Fer preavaluació";
+    btn.addEventListener("click", (ev) => {
+      ev.stopPropagation();
+      openFormForStudent(stu);
+    });
+    tdAction.appendChild(btn);
+
+    tr.appendChild(tdName);
+    tr.appendChild(tdGroup);
+    tr.appendChild(tdStatus);
+    tr.appendChild(tdAction);
+    tbody.appendChild(tr);
+  });
+}
+
+/* ========= FORMULARI ========= */
+function openFormForStudent(stu){
+  currentStudent = stu;
+  const email = currentUserEmail || "";
+  const modCode = currentModule ? currentModule.module_code : "";
+
+  const pe = findPreevaluation(email, modCode, stu.student_id);
+  currentPreeval = pe;
+
+  $("formTitle").textContent = `Preavaluació de ${stu.student_name || "—"} (${stu.student_id || "?"})`;
+  const profName = currentProfessor
+    ? `${currentProfessor.profe_name} ${currentProfessor.profe_lastname}`
+    : email;
+  const modName = currentModule ? `${currentModule.module_name || ""} (${currentModule.module_code || ""})` : "";
+  $("formSubtitle").textContent = `${profName} — ${modName}`;
+
+  if(pe){
+    $("preComment").value = pe.comments || "";
+    $("preRecommendation").value = pe.recommendation || "";
+    $("saveStatus").textContent = "Preavaluació carregada des d'Excel.";
+  }else{
+    $("preComment").value = "";
+    $("preRecommendation").value = "";
+    $("saveStatus").textContent = "Fent una nova preavaluació.";
+  }
+
+  showView("form");
+}
+
+async function ensurePreFileUrl(){
+  if(preFileUrlCache) return preFileUrlCache;
+  const base = graphBase();
+  preFileUrlCache = graphPathToFile(base, config.preFilePath);
+  return preFileUrlCache;
+}
+
+function buildValuesFromPreeval(pe){
+  // Genera un array de valors seguint l'ordre de columnes de la taula
+  const values = new Array(preCols.length).fill("");
+  const map = {
+    prof_email: pe.prof_email,
+    course: pe.course,
+    group: pe.group,
+    module_code: pe.module_code,
+    student_id: pe.student_id,
+    comments: pe.comments || "",
+    recommendation: pe.recommendation || ""
+  };
+  preCols.forEach((name, idx) => {
+    if(Object.prototype.hasOwnProperty.call(map, name)){
+      values[idx] = map[name];
+    }else if(pe.rawValues && pe.rawValues.length > idx){
+      // preserva altres columnes existents en cas d'edició
+      values[idx] = pe.rawValues[idx];
+    }else{
+      values[idx] = "";
+    }
+  });
+  return values;
+}
+
+async function savePreevaluation(){
+  if(!currentStudent || !currentModule || !currentUserEmail){
+    alert("Falta informació per desar la preavaluació.");
+    return;
+  }
+  const comments = $("preComment").value.trim();
+  const recommendation = $("preRecommendation").value;
+
+  if(!recommendation){
+    if(!confirm("No has seleccionat cap recomanació. Vols desar igualment?")){
+      return;
+    }
+  }
+
+  $("btnSaveForm").disabled = true;
+  $("saveStatus").textContent = "Desant la preavaluació…";
+
+  const email = (currentUserEmail || "").toLowerCase();
+  const peBase = {
+    prof_email: email,
+    course: currentStudent.course || "",
+    group: currentStudent.group || "",
+    module_code: currentModule.module_code || "",
+    student_id: currentStudent.student_id || "",
+    comments,
+    recommendation
+  };
+
+  try{
+    const fileUrl = await ensurePreFileUrl();
+    const tableNameEnc = encodeURIComponent(config.preTableName);
+
+    if(currentPreeval && typeof currentPreeval._rowIndex === "number"){
+      // Actualitzar fila existent
+      const merged = {
+        ...currentPreeval,
+        ...peBase
+      };
+      const values = buildValuesFromPreeval(merged);
+
+      const body = JSON.stringify({
+        index: currentPreeval._rowIndex,
+        values: [values]
+      });
+
+      await gfetch(`${fileUrl}/workbook/tables/${tableNameEnc}/rows/${currentPreeval._rowIndex}`, {
+        method: "PATCH",
+        body
+      });
+
+      // Actualitza en memòria
+      currentPreeval.rawValues = values.slice();
+      currentPreeval.comments = comments;
+      currentPreeval.recommendation = recommendation;
+      $("saveStatus").textContent = "Preavaluació actualitzada correctament.";
+    }else{
+      // Afegir nova fila
+      const tempPe = {
+        ...peBase,
+        rawValues: []
+      };
+      const values = buildValuesFromPreeval(tempPe);
+
+      const body = JSON.stringify({
+        index: null,
+        values: [values]
+      });
+
+      const res = await gfetch(`${fileUrl}/workbook/tables/${tableNameEnc}/rows/add`, {
+        method: "POST",
+        body
+      });
+
+      const newIndex = (typeof res.index === "number") ? res.index : preevaluacions.length;
+      const newPe = {
+        _rowIndex: newIndex,
+        rawValues: values.slice(),
+        ...peBase
+      };
+      preevaluacions.push(newPe);
+      currentPreeval = newPe;
+      $("saveStatus").textContent = "Preavaluació desada correctament.";
+    }
+
+    // Després de desar, actualitza comptadors i torna a la llista d'alumnes
+    renderStudents();
   }catch(e){
     console.error(e);
-    const msg = niceGraphError(e);
-    statusMsg(msg,"status1","err");
-    alert("Error carregant dades: " + msg);
+    $("saveStatus").textContent = "Error en desar la preavaluació.";
+    alert("No s'ha pogut desar la preavaluació: " + e.message);
+  }finally{
+    $("btnSaveForm").disabled = false;
   }
 }
 
-/* ===== Flux login/logout ===== */
+/* ========= LOGIN / LOGOUT ========= */
 async function start(){
   try{
-    $("btnStart").disabled=true;
+    $("btnStart").disabled = true;
     const res = await msalApp.loginPopup({ scopes: graphScopes, prompt: "select_account" });
-    currentUserEmail = (res.account.username||"").toLowerCase();
-    $("whoami").textContent = currentUserEmail;
+    currentUserEmail = (res.account.username || "").toLowerCase();
     $("hero").classList.add("hidden");
     $("appbar").classList.remove("hidden");
     $("app").classList.remove("hidden");
-    showStep(1);
     await initData();
+    showView("modules");
   }catch(e){
     console.error(e);
     alert("No s'ha pogut iniciar sessió: " + e.message);
-    $("btnStart").disabled=false;
+    $("btnStart").disabled = false;
   }
 }
+
 async function logout(){
   try{
     const acc = msalApp.getAllAccounts()[0];
     await msalApp.logoutPopup({ account: acc, postLogoutRedirectUri: config.redirectUri });
   }catch(e){
-    console.warn("logoutPopup va fallar, netejo UI igualment", e);
+    console.warn("logoutPopup va fallar, es neteja la UI igualment", e);
   }finally{
     resetUI();
   }
 }
 
-/* ===== Events ===== */
+/* ========= ESDEVENIMENTS ========= */
 $("btnStart").addEventListener("click", start);
 $("btnLogout").addEventListener("click", logout);
-$("alumneSel").addEventListener("change", ()=>{ updateChips(); $("goStep2").disabled = $("alumneSel").selectedIndex<0; });
-$("goStep2").addEventListener("click", ()=>{ rebuildModulsForAlumne(); showStep(2); });
-$("backStep1").addEventListener("click", ()=>{ showStep(1); });
-$("modulSel").addEventListener("change", ()=>{ $("btnContinue").disabled = $("modulSel").selectedIndex<0; updateChips(); });
-$("btnContinue").addEventListener("click", ()=>{ alert("Perfecte! Selecció guardada.\n(Quan vulguis, afegim la resta de passos.)"); });
 
-// Autologin
-msalApp.handleRedirectPromise().then(async ()=>{
-  const acc=msalApp.getAllAccounts()[0];
+$("btnBackToModules").addEventListener("click", () => {
+  showView("modules");
+});
+
+$("btnBackToStudents").addEventListener("click", () => {
+  showView("students");
+});
+
+$("filterStatus").addEventListener("change", () => {
+  renderStudents();
+});
+
+$("btnSaveForm").addEventListener("click", () => {
+  savePreevaluation();
+});
+
+// Si ja hi ha sessió oberta, entra directament
+msalApp.handleRedirectPromise().then(async () => {
+  const acc = msalApp.getAllAccounts()[0];
   if(acc){
-    currentUserEmail = (acc.username||"").toLowerCase();
-    $("whoami").textContent = currentUserEmail;
+    currentUserEmail = (acc.username || "").toLowerCase();
     $("hero").classList.add("hidden");
     $("appbar").classList.remove("hidden");
     $("app").classList.remove("hidden");
-    showStep(1);
     await initData();
+    showView("modules");
   }
-}).catch(e=>console.error(e));
+}).catch(e => console.error(e));
 </script>
 </body>
 </html>
