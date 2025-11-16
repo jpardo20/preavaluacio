@@ -35,10 +35,15 @@ let preCols = [];
 let preFileUrlCache = null;
 
 let currentProfessor = null;
-let currentModule = null;     // { module_code, module_name }
+let currentModule = null;
 let currentStudentsInModule = [];
-let currentStudent = null;    // alumne seleccionat
-let currentPreeval = null;    // objecte de preavaluació per aquest alumne+modul (o null);
+let currentStudent = null;
+let currentPreeval = null;
+
+/* Wizard */
+let formSteps = [];
+let currentStep = 1;
+let totalSteps = 1;
 
 /* ========= UTILITATS ========= */
 function log(msg, cls="muted"){
@@ -89,11 +94,12 @@ function resetUI(){
   $("preInteractions").value = "1";
   $("preMotivation").value = "1";
   $("preNeeds").value = "";
-  $("preCommentExtra").value = "";
+  const cExtra = $("preCommentExtra");
+  if(cExtra) cExtra.value = "";
   $("saveStatus").textContent = "";
 }
 
-/* GRAPH helpers */
+/* ========= GRAPH HELPERS ========= */
 async function getToken(){
   const account = msalApp.getAllAccounts()[0];
   const req = { account, scopes: graphScopes };
@@ -177,7 +183,7 @@ async function initData(){
     prof_email: (v[is.prof_email] || "").toLowerCase()
   }));
 
-  // 3) Professors (opcional però recomanat)
+  // 3) Professors
   try{
     const P = await loadTableRows(config.refsFilePath, config.refsTables.professors);
     requireColumns(P.colNames, ["prof_email","profe_name","profe_lastname"], "Professors");
@@ -192,7 +198,7 @@ async function initData(){
     professors = [];
   }
 
-  // 4) Preevaluacions (pot ser buida al principi)
+  // 4) Preevaluacions
   try{
     const base = graphBase();
     const fileUrl = graphPathToFile(base, config.preFilePath);
@@ -201,7 +207,6 @@ async function initData(){
     const cols = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(config.preTableName)}/columns`);
     preCols = cols.value.map(c => c.name);
 
-    // Columnes mínimes necessàries segons el teu Excel
     requireColumns(
       preCols,
       ["course","group","student_id","student_name","module_code","module_name",
@@ -240,7 +245,7 @@ async function initData(){
         prof_email: (getVal(v,"prof_email") || "").toLowerCase(),
         prof_name: getVal(v,"prof_name") || "",
         timestamp: getVal(v,"timestamp") || "",
-        recomanacio: getVal(v,"recomanacio") || "" // si no existeix, queda buit
+        recomanacio: getVal(v,"recomanacio") || ""
       };
     });
   }catch(e){
@@ -252,7 +257,6 @@ async function initData(){
     preFileUrlCache = null;
   }
 
-  // 5) Actualitza capçalera i vistes
   updateProfessorHeader();
   renderModules();
   log("Dades carregades correctament.","ok");
@@ -446,7 +450,7 @@ function renderStudents(){
   });
 }
 
-/* ========= FORMULARI ========= */
+/* ========= FORMULARI / WIZARD ========= */
 function openFormForStudent(stu){
   currentStudent = stu;
   const email = currentUserEmail || "";
@@ -464,7 +468,8 @@ function openFormForStudent(stu){
 
   if(pe){
     $("preComment").value      = pe.comentari || "";
-    $("preCommentExtra").value = "";
+    const cExtra = $("preCommentExtra");
+    if(cExtra) cExtra.value = "";
     $("preRecommendation").value = pe.recomanacio || "";
     $("preGrade").value        = pe.nota_0a10 || "";
     $("preTrafficLight").value = pe.semafor || "";
@@ -476,7 +481,8 @@ function openFormForStudent(stu){
     $("saveStatus").textContent = "Preavaluació carregada des d'Excel.";
   }else{
     $("preComment").value = "";
-    $("preCommentExtra").value = "";
+    const cExtra = $("preCommentExtra");
+    if(cExtra) cExtra.value = "";
     $("preRecommendation").value = "";
     $("preGrade").value = "";
     $("preTrafficLight").value = "";
@@ -488,6 +494,9 @@ function openFormForStudent(stu){
     $("saveStatus").textContent = "Fent una nova preavaluació.";
   }
 
+  syncAllControlsFromModel();
+  currentStep = 1;
+  updateStepUI();
   showView("form");
 }
 
@@ -499,7 +508,6 @@ async function ensurePreFileUrl(){
 }
 
 function buildValuesFromPreeval(pe){
-  // Genera un array de valors seguint l'ordre de columnes de la taula
   const values = new Array(preCols.length).fill("");
   const map = {
     course: pe.course,
@@ -525,7 +533,6 @@ function buildValuesFromPreeval(pe){
     if(Object.prototype.hasOwnProperty.call(map, name)){
       values[idx] = map[name];
     }else if(pe.rawValues && pe.rawValues.length > idx){
-      // preserva altres columnes existents en cas d'edició
       values[idx] = pe.rawValues[idx];
     }else{
       values[idx] = "";
@@ -541,7 +548,8 @@ async function savePreevaluation(){
   }
 
   const commentTop       = $("preComment").value.trim();
-  const commentExtra     = $("preCommentExtra").value.trim();
+  const commentExtraEl   = $("preCommentExtra");
+  const commentExtra     = commentExtraEl ? commentExtraEl.value.trim() : "";
   const recommendation   = $("preRecommendation").value;
   const nota_0a10        = $("preGrade").value;
   const semafor          = $("preTrafficLight").value;
@@ -551,7 +559,7 @@ async function savePreevaluation(){
   const motivacio_1a4    = $("preMotivation").value;
   const necessitats      = $("preNeeds").value;
 
-  const comentari        = commentTop || commentExtra; // prioritzem el camp principal
+  const comentari        = commentTop || commentExtra;
 
   if(!semafor && !nota_0a10 && !comentari){
     if(!confirm("No hi ha cap nota, semàfor ni comentari. Vols desar igualment?")){
@@ -594,7 +602,6 @@ async function savePreevaluation(){
     const tableNameEnc = encodeURIComponent(config.preTableName);
 
     if(currentPreeval && typeof currentPreeval._rowIndex === "number"){
-      // Actualitzar fila existent
       const merged = { ...currentPreeval, ...peBase };
       const values = buildValuesFromPreeval(merged);
 
@@ -608,11 +615,9 @@ async function savePreevaluation(){
         body
       });
 
-      // Actualitza en memòria
       Object.assign(currentPreeval, peBase, { rawValues: values.slice() });
       $("saveStatus").textContent = "Preavaluació actualitzada correctament.";
     }else{
-      // Afegir nova fila
       const tempPe = { ...peBase, rawValues: [] };
       const values = buildValuesFromPreeval(tempPe);
 
@@ -633,7 +638,6 @@ async function savePreevaluation(){
       $("saveStatus").textContent = "Preavaluació desada correctament.";
     }
 
-    // refresca alumnes i mòduls
     renderStudents();
     renderModules();
   }catch(e){
@@ -643,6 +647,156 @@ async function savePreevaluation(){
   }finally{
     $("btnSaveForm").disabled = false;
   }
+}
+
+/* ========= WIZARD: CONTROL DE PASSOS ========= */
+function updateStepUI(){
+  if(!formSteps.length) return;
+  if(currentStep < 1) currentStep = 1;
+  if(currentStep > totalSteps) currentStep = totalSteps;
+
+  formSteps.forEach(step => {
+    const n = parseInt(step.dataset.step || "1", 10);
+    if(n === currentStep) step.classList.remove("hidden");
+    else step.classList.add("hidden");
+  });
+
+  const lbl = $("stepLabel");
+  const bar = $("stepProgress");
+  if(lbl){
+    lbl.textContent = `Pàgina ${currentStep} de ${totalSteps}`;
+  }
+  if(bar){
+    const pct = totalSteps > 1 ? ((currentStep - 1) / (totalSteps - 1)) * 100 : 100;
+    bar.style.width = pct + "%";
+  }
+
+  const btnPrev = $("btnPrevStep");
+  const btnNext = $("btnNextStep");
+  if(btnPrev) btnPrev.disabled = currentStep === 1;
+  if(btnNext) btnNext.textContent = currentStep === totalSteps ? "Finalitzar" : "Següent";
+}
+
+function nextStep(){
+  if(currentStep < totalSteps){
+    currentStep++;
+    updateStepUI();
+  }
+}
+
+function prevStep(){
+  if(currentStep > 1){
+    currentStep--;
+    updateStepUI();
+  }
+}
+
+/* ========= SYNC DE CONTROLS (botons, ràdios, checkboxes) ========= */
+function setupGradeButtons(){
+  const container = $("gradeButtons");
+  if(!container) return;
+  const buttons = Array.from(container.querySelectorAll(".rating-pill"));
+  buttons.forEach(btn => {
+    btn.addEventListener("click", () => {
+      const v = btn.dataset.value;
+      $("preGrade").value = v;
+      buttons.forEach(b => b.classList.toggle("selected", b === btn));
+    });
+  });
+}
+
+function syncGradeButtonsFromField(){
+  const container = $("gradeButtons");
+  if(!container) return;
+  const buttons = Array.from(container.querySelectorAll(".rating-pill"));
+  const val = $("preGrade").value;
+  buttons.forEach(btn => {
+    btn.classList.toggle("selected", String(btn.dataset.value) === String(val));
+  });
+}
+
+function setupScaleRadio(name, selectId){
+  const radios = Array.from(document.querySelectorAll(`input[name="${name}"]`));
+  const selectEl = $(selectId);
+  if(!radios.length || !selectEl) return;
+  radios.forEach(radio => {
+    radio.addEventListener("change", () => {
+      if(radio.checked){
+        selectEl.value = radio.value;
+      }
+    });
+  });
+}
+
+function syncScaleRadioFromSelect(name, selectId){
+  const radios = Array.from(document.querySelectorAll(`input[name="${name}"]`));
+  const selectEl = $(selectId);
+  if(!radios.length || !selectEl) return;
+  const val = selectEl.value;
+  radios.forEach(radio => {
+    radio.checked = (radio.value === val);
+  });
+}
+
+function setupTrafficLightRadios(){
+  const radios = Array.from(document.querySelectorAll('input[name="preTrafficLightRadio"]'));
+  const selectEl = $("preTrafficLight");
+  if(!radios.length || !selectEl) return;
+  radios.forEach(radio => {
+    radio.addEventListener("change", () => {
+      if(radio.checked){
+        selectEl.value = radio.value;
+      }
+    });
+  });
+}
+
+function syncTrafficLightRadios(){
+  const radios = Array.from(document.querySelectorAll('input[name="preTrafficLightRadio"]'));
+  const selectEl = $("preTrafficLight");
+  if(!radios.length || !selectEl) return;
+  const val = selectEl.value || "";
+  radios.forEach(radio => {
+    radio.checked = (radio.value === val);
+  });
+}
+
+function setupNeedsCheckboxes(){
+  const boxes = Array.from(document.querySelectorAll('input[data-need]'));
+  const hidden = $("preNeeds");
+  if(!boxes.length || !hidden) return;
+
+  const updateHidden = () => {
+    const selected = boxes.filter(b => b.checked).map(b => b.value.trim());
+    hidden.value = selected.join("; ");
+  };
+
+  boxes.forEach(box => {
+    box.addEventListener("change", updateHidden);
+  });
+}
+
+function syncNeedsCheckboxesFromField(){
+  const boxes = Array.from(document.querySelectorAll('input[data-need]'));
+  const hidden = $("preNeeds");
+  if(!boxes.length || !hidden) return;
+  const text = hidden.value || "";
+  const tokens = text.split(";").map(t => t.trim()).filter(Boolean);
+  boxes.forEach(box => {
+    const value = box.value.trim().toLowerCase();
+    const matched = tokens.some(t => t.toLowerCase() === value);
+    box.checked = matched;
+  });
+}
+
+function syncAllControlsFromModel(){
+  syncGradeButtonsFromField();
+  syncScaleRadioFromSelect("preAcademicRadio","preAcademic");
+  syncScaleRadioFromSelect("preBehaviorRadio","preBehavior");
+  syncScaleRadioFromSelect("preInteractionsRadio","preInteractions");
+  syncScaleRadioFromSelect("preMotivationRadio","preMotivation");
+  syncNeedsCheckboxesFromField();
+  syncTrafficLightRadios();
 }
 
 /* ========= LOGIN / LOGOUT ========= */
@@ -696,7 +850,32 @@ $("btnSaveForm").addEventListener("click", () => {
   savePreevaluation();
 });
 
-// Si ja hi ha sessió oberta, entra directament
+/* Wizard buttons */
+const prevBtn = $("btnPrevStep");
+const nextBtn = $("btnNextStep");
+if(prevBtn) prevBtn.addEventListener("click", prevStep);
+if(nextBtn) nextBtn.addEventListener("click", () => {
+  if(currentStep < totalSteps) nextStep();
+  else {
+    // última pàgina: no fem res especial (pots prémer "Desa")
+  }
+});
+
+/* Inicialització del wizard i controls UI */
+formSteps = Array.from(document.querySelectorAll("#formSteps .form-step"));
+totalSteps = formSteps.length || 1;
+currentStep = 1;
+updateStepUI();
+
+setupGradeButtons();
+setupScaleRadio("preAcademicRadio","preAcademic");
+setupScaleRadio("preBehaviorRadio","preBehavior");
+setupScaleRadio("preInteractionsRadio","preInteractions");
+setupScaleRadio("preMotivationRadio","preMotivation");
+setupNeedsCheckboxes();
+setupTrafficLightRadios();
+
+/* Sessió ja oberta? */
 msalApp.handleRedirectPromise().then(async () => {
   const acc = msalApp.getAllAccounts()[0];
   if(acc){

@@ -61,7 +61,7 @@ a{color:var(--primary)}
 }
 .hero small{opacity:.85}
 
-/* APP BAR (post-login) */
+/* APP BAR */
 .appbar{
   position:sticky;
   top:0;
@@ -104,7 +104,7 @@ a{color:var(--primary)}
 }
 .muted{color:var(--muted)}
 
-/* GENERIC FORM / BUTTONS */
+/* FORM / BUTTONS */
 fieldset{
   border:1px solid var(--bd);
   border-radius:12px;
@@ -186,4 +186,125 @@ tr.clickable-row:hover{background:#eef2ff}
   background:#fff7ed;
   color:#c05621;
   border:1px solid #fed7aa;
+}
+
+/* --------- PAS A PAS / PREGUNTES --------- */
+
+.hidden-input{display:none;}
+
+.question-title{
+  font-size:16px;
+  font-weight:600;
+  margin:6px 0 4px;
+}
+.question-subtitle{
+  font-size:13px;
+  color:var(--muted);
+  margin:0 0 10px;
+}
+
+/* Progrés */
+.form-progress-bar{
+  margin:12px 0 18px;
+}
+.step-label{
+  display:block;
+  font-size:13px;
+  color:var(--muted);
+  margin-bottom:4px;
+}
+.progress-track{
+  width:100%;
+  height:6px;
+  border-radius:999px;
+  background:#e5e7eb;
+  overflow:hidden;
+}
+.progress-fill{
+  height:100%;
+  width:0%;
+  border-radius:999px;
+  background:var(--primary);
+  transition:width .2s ease-out;
+}
+
+/* Escala 0-10 */
+.rating-row{
+  display:flex;
+  flex-wrap:wrap;
+  gap:8px;
+  margin-top:6px;
+}
+.rating-pill{
+  min-width:36px;
+  padding:8px 10px;
+  border-radius:8px;
+  border:1px solid #cbd5e1;
+  background:#fff;
+  cursor:pointer;
+  text-align:center;
+  font-size:14px;
+}
+.rating-pill.selected{
+  background:#0b57d0;
+  color:#fff;
+  border-color:#0b57d0;
+}
+
+/* Ràdios / Checkboxes */
+.radio-list,
+.checkbox-list{
+  display:flex;
+  flex-direction:column;
+  gap:6px;
+  margin-top:6px;
+}
+.radio-option,
+.checkbox-option{
+  display:flex;
+  align-items:center;
+  gap:8px;
+  font-size:14px;
+}
+.radio-option input,
+.checkbox-option input{
+  transform:scale(1.1);
+}
+
+/* Navegació de passos */
+.form-nav{
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:10px;
+  margin-top:14px;
+}
+.btn-ghost{
+  padding:8px 12px;
+  border-radius:10px;
+  border:1px solid #d1d5db;
+  background:#fff;
+  color:#111827;
+  cursor:pointer;
+}
+.btn-ghost:disabled{
+  opacity:.6;
+  cursor:not-allowed;
+}
+
+/* Desa */
+.save-row{
+  display:flex;
+  align-items:center;
+  gap:10px;
+  margin-top:10px;
+}
+
+/* Responsive */
+@media (max-width:600px){
+  .hero .container{gap:18px}
+  .appbar-inner{padding:8px 12px}
+  .wrap{padding:0 10px}
+  .card{padding:14px}
+  .rating-row{justify-content:flex-start}
 }

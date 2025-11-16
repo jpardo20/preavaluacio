@@ -9,15 +9,15 @@
   <link rel="preconnect" href="https://alcdn.msauth.net">
   <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
 
-  <!-- Configuració (ara dins /js) -->
+  <!-- Configuració -->
   <script src="js/config-preavaluacio.js"></script>
 
-  <!-- Estils base (ara dins /css) -->
+  <!-- Estils -->
   <link rel="stylesheet" href="css/base.css" />
 </head>
 <body>
 
-  <!-- Portada (sense barra de progrés) -->
+  <!-- Portada (pre-login) -->
   <section class="hero" id="hero">
     <div class="container">
       <div>
@@ -29,7 +29,7 @@
     </div>
   </section>
 
-  <!-- Barra superior amb nom del professor + Tanca sessió (només post-login) -->
+  <!-- Barra superior (post-login) -->
   <div class="appbar hidden" id="appbar">
     <div class="appbar-inner">
       <span class="who" id="whoami">—</span>
@@ -37,11 +37,11 @@
     </div>
   </div>
 
-  <!-- Aplicació principal (mòduls → alumnes → formulari) -->
+  <!-- Aplicació principal -->
   <div class="wrap hidden" id="app">
     <div class="card">
 
-      <!-- Vista 1: Mòduls del professor -->
+      <!-- Vista 1: Mòduls -->
       <section id="view-modules">
         <h2 style="margin:14px 0 6px">Mòduls assignats</h2>
         <p class="muted" id="modulesIntro">
@@ -63,7 +63,7 @@
         </p>
       </section>
 
-      <!-- Vista 2: Alumnes d'un mòdul -->
+      <!-- Vista 2: Alumnes -->
       <section id="view-students" class="hidden">
         <button type="button" class="btn btn-small" id="btnBackToModules">← Torna als mòduls</button>
         <h2 id="studentsModuleTitle" style="margin:14px 0 6px">Alumnes del mòdul</h2>
@@ -97,99 +97,213 @@
         </p>
       </section>
 
-      <!-- Vista 3: Formulari de preavaluació -->
+      <!-- Vista 3: Formulari pas a pas -->
       <section id="view-form" class="hidden">
         <button type="button" class="btn btn-small" id="btnBackToStudents">← Torna als alumnes</button>
 
         <h2 id="formTitle" style="margin:14px 0 6px">Preavaluació</h2>
         <p class="muted" id="formSubtitle"></p>
 
-        <fieldset>
-          <legend>Resum de la situació</legend>
-          <label for="preComment">Comentaris sobre l'alumne</label>
-          <textarea id="preComment" rows="4" placeholder="Comentaris sobre assistència, actitud, treball, etc."></textarea>
-        </fieldset>
+        <!-- Progrés -->
+        <div class="form-progress-bar">
+          <span id="stepLabel" class="step-label">Pàgina 1 de 8</span>
+          <div class="progress-track">
+            <div id="stepProgress" class="progress-fill"></div>
+          </div>
+        </div>
 
-        <fieldset>
-          <legend>Valoracions</legend>
+        <!-- Steps -->
+        <div id="formSteps">
 
-          <div class="row">
-            <div>
-              <label for="preGrade">Nota estimada (0–10)</label>
-              <input id="preGrade" type="number" min="0" max="10" step="0.1" />
+          <!-- Step 1: Nota 0-10 -->
+          <div class="form-step" data-step="1">
+            <h3 class="question-title">Indica la nota estimada del mòdul (0–10)</h3>
+            <p class="question-subtitle">Fes clic en una de les opcions.</p>
+            <div class="rating-row" id="gradeButtons">
+              <button type="button" class="rating-pill" data-value="1">1</button>
+              <button type="button" class="rating-pill" data-value="2">2</button>
+              <button type="button" class="rating-pill" data-value="3">3</button>
+              <button type="button" class="rating-pill" data-value="4">4</button>
+              <button type="button" class="rating-pill" data-value="5">5</button>
+              <button type="button" class="rating-pill" data-value="6">6</button>
+              <button type="button" class="rating-pill" data-value="7">7</button>
+              <button type="button" class="rating-pill" data-value="8">8</button>
+              <button type="button" class="rating-pill" data-value="9">9</button>
+              <button type="button" class="rating-pill" data-value="10">10</button>
             </div>
-            <div>
-              <label for="preTrafficLight">Semàfor</label>
-              <select id="preTrafficLight">
+            <!-- camp real (per guardar/recuperar) -->
+            <input id="preGrade" type="number" min="0" max="10" step="0.1" class="hidden-input" />
+          </div>
+
+          <!-- Step 2: Acadèmic 1-4 -->
+          <div class="form-step" data-step="2">
+            <h3 class="question-title">Indica la teva valoració acadèmica de l'alumne (1–4)</h3>
+            <p class="question-subtitle">
+              <strong>1</strong>: per sota |
+              <strong>2</strong>: en procés |
+              <strong>3</strong>: adequat |
+              <strong>4</strong>: excel·lent
+            </p>
+            <div class="radio-list">
+              <label class="radio-option"><input type="radio" name="preAcademicRadio" value="1"> 1</label>
+              <label class="radio-option"><input type="radio" name="preAcademicRadio" value="2"> 2</label>
+              <label class="radio-option"><input type="radio" name="preAcademicRadio" value="3"> 3</label>
+              <label class="radio-option"><input type="radio" name="preAcademicRadio" value="4"> 4</label>
+            </div>
+            <select id="preAcademic" class="hidden-input">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+
+          <!-- Step 3: Comportament 1-4 -->
+          <div class="form-step" data-step="3">
+            <h3 class="question-title">Avala quin és el seu comportament a l'aula (1–4)</h3>
+            <p class="question-subtitle">
+              <strong>1</strong>: trenca/ignora normes |
+              <strong>2</strong>: irregular |
+              <strong>3</strong>: correcte |
+              <strong>4</strong>: exemplar
+            </p>
+            <div class="radio-list">
+              <label class="radio-option"><input type="radio" name="preBehaviorRadio" value="1"> 1</label>
+              <label class="radio-option"><input type="radio" name="preBehaviorRadio" value="2"> 2</label>
+              <label class="radio-option"><input type="radio" name="preBehaviorRadio" value="3"> 3</label>
+              <label class="radio-option"><input type="radio" name="preBehaviorRadio" value="4"> 4</label>
+            </div>
+            <select id="preBehavior" class="hidden-input">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+
+          <!-- Step 4: Interaccions 1-4 -->
+          <div class="form-step" data-step="4">
+            <h3 class="question-title">Quin és el nivell d'interacció amb el professor i amb la resta de companys (1–4)</h3>
+            <p class="question-subtitle">
+              <strong>1</strong>: conflictes |
+              <strong>2</strong>: col·labora amb dificultats |
+              <strong>3</strong>: col·labora |
+              <strong>4</strong>: lidera/cuida
+            </p>
+            <div class="radio-list">
+              <label class="radio-option"><input type="radio" name="preInteractionsRadio" value="1"> 1</label>
+              <label class="radio-option"><input type="radio" name="preInteractionsRadio" value="2"> 2</label>
+              <label class="radio-option"><input type="radio" name="preInteractionsRadio" value="3"> 3</label>
+              <label class="radio-option"><input type="radio" name="preInteractionsRadio" value="4"> 4</label>
+            </div>
+            <select id="preInteractions" class="hidden-input">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+
+          <!-- Step 5: Motivació 1-4 -->
+          <div class="form-step" data-step="5">
+            <h3 class="question-title">Indica quina és la motivació que li veus a classe (1–4)</h3>
+            <p class="question-subtitle">
+              <strong>1</strong>: desconnexió |
+              <strong>2</strong>: intermitent |
+              <strong>3</strong>: estable |
+              <strong>4</strong>: alta implicació
+            </p>
+            <div class="radio-list">
+              <label class="radio-option"><input type="radio" name="preMotivationRadio" value="1"> 1</label>
+              <label class="radio-option"><input type="radio" name="preMotivationRadio" value="2"> 2</label>
+              <label class="radio-option"><input type="radio" name="preMotivationRadio" value="3"> 3</label>
+              <label class="radio-option"><input type="radio" name="preMotivationRadio" value="4"> 4</label>
+            </div>
+            <select id="preMotivation" class="hidden-input">
+              <option value="1">1</option>
+              <option value="2">2</option>
+              <option value="3">3</option>
+              <option value="4">4</option>
+            </select>
+          </div>
+
+          <!-- Step 6: Necessitats -->
+          <div class="form-step" data-step="6">
+            <h3 class="question-title">Creus que té alguna necessitat especial o adaptació?</h3>
+            <p class="question-subtitle">
+              Pots marcar més d'una opció. Si selecciones "Altres", especifica-ho al comentari final.
+            </p>
+            <div class="checkbox-list">
+              <label class="checkbox-option">
+                <input type="checkbox" value="Cap" data-need> Cap
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" value="Recordatoris de terminis" data-need> Recordatoris de terminis
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" value="Exemples guiats" data-need> Exemples guiats
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" value="Desglossar tasques" data-need> Desglossar tasques
+              </label>
+              <label class="checkbox-option">
+                <input type="checkbox" value="Altres" data-need> Altres (especifica-ho a Comentari)
+              </label>
+            </div>
+            <input id="preNeeds" type="text" class="hidden-input" />
+          </div>
+
+          <!-- Step 7: Semàfor -->
+          <div class="form-step" data-step="7">
+            <h3 class="question-title">Quin color li posaries al Semàfor de risc?</h3>
+            <div class="radio-list">
+              <label class="radio-option">
+                <input type="radio" name="preTrafficLightRadio" value="Verd"> Verd
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="preTrafficLightRadio" value="Groc"> Ataronjat
+              </label>
+              <label class="radio-option">
+                <input type="radio" name="preTrafficLightRadio" value="Vermell"> Vermell
+              </label>
+            </div>
+            <select id="preTrafficLight" class="hidden-input">
+              <option value="">— Selecciona una opció —</option>
+              <option value="Verd">Verd</option>
+              <option value="Groc">Groc</option>
+              <option value="Vermell">Vermell</option>
+            </select>
+          </div>
+
+          <!-- Step 8: Comentari + Recomanació -->
+          <div class="form-step" data-step="8">
+            <h3 class="question-title">Comentari (3–5 línies)</h3>
+            <p class="question-subtitle">Escriviu la vostra resposta.</p>
+            <textarea id="preComment" rows="4"></textarea>
+            <!-- camp extra per compatibilitat amb el codi existent -->
+            <textarea id="preCommentExtra" class="hidden-input"></textarea>
+
+            <div class="recommendation-block" style="margin-top:14px;">
+              <label for="preRecommendation">Recomanació per al tutor</label>
+              <select id="preRecommendation">
                 <option value="">— Selecciona una opció —</option>
-                <option value="Verd">Verd</option>
-                <option value="Groc">Groc</option>
-                <option value="Vermell">Vermell</option>
+                <option value="positiva">Evolució positiva, continuar igual</option>
+                <option value="millorable">Cal millorar alguns aspectes</option>
+                <option value="seguiment">Requereix seguiment proper</option>
               </select>
             </div>
           </div>
 
-          <div class="row">
-            <div>
-              <label for="preAcademic">Acadèmic (1–4)</label>
-              <select id="preAcademic">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-              </select>
-            </div>
-            <div>
-              <label for="preBehavior">Comportament (1–4)</label>
-              <select id="preBehavior">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-              </select>
-            </div>
-          </div>
+        </div>
 
-          <div class="row">
-            <div>
-              <label for="preInteractions">Interaccions (1–4)</label>
-              <select id="preInteractions">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-              </select>
-            </div>
-            <div>
-              <label for="preMotivation">Motivació (1–4)</label>
-              <select id="preMotivation">
-                <option value="1">1</option>
-                <option value="2">2</option>
-                <option value="3">3</option>
-                <option value="4">4</option>
-              </select>
-            </div>
-          </div>
+        <!-- Navegació de passos -->
+        <div class="form-nav">
+          <button type="button" class="btn-ghost" id="btnPrevStep">Enrere</button>
+          <button type="button" class="btn" id="btnNextStep">Següent</button>
+        </div>
 
-          <label for="preNeeds">Necessitats/Adaptacions (separa amb ; )</label>
-          <input id="preNeeds" type="text" />
-
-          <label for="preCommentExtra">Comentari (3–5 línies)</label>
-          <textarea id="preCommentExtra" rows="3"></textarea>
-        </fieldset>
-
-        <fieldset>
-          <legend>Recomanació</legend>
-          <label for="preRecommendation">Recomanació per al tutor</label>
-          <select id="preRecommendation">
-            <option value="">— Selecciona una opció —</option>
-            <option value="positiva">Evolució positiva, continuar igual</option>
-            <option value="millorable">Cal millorar alguns aspectes</option>
-            <option value="seguiment">Requereix seguiment proper</option>
-          </select>
-        </fieldset>
-
-        <div style="display:flex;gap:10px;margin-top:10px;align-items:center;">
+        <!-- Desa -->
+        <div class="save-row">
           <button type="button" class="btn" id="btnSaveForm">Desa la preavaluació</button>
           <span id="saveStatus" class="muted"></span>
         </div>
@@ -200,7 +314,7 @@
     </div>
   </div>
 
-  <!-- Lògica de l'aplicació (separada en un JS propi) -->
+  <!-- Lògica de l'aplicació -->
   <script src="js/app-preavaluacio.js"></script>
 </body>
 </html>
