@@ -294,6 +294,78 @@
         </fieldset>
 
         <fieldset>
+          <legend>Valoracions</legend>
+
+          <div class="row">
+            <div>
+              <label for="preGrade">Nota estimada (0–10)</label>
+              <input id="preGrade" type="number" min="0" max="10" step="0.5" />
+            </div>
+            <div>
+              <label for="preTrafficLight">Semàfor</label>
+              <select id="preTrafficLight">
+                <option value="">— Selecciona —</option>
+                <option value="Verd">Verd</option>
+                <option value="Groc">Groc</option>
+                <option value="Vermell">Vermell</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="preAcademic">Acadèmic (1–4)</label>
+              <select id="preAcademic">
+                <option value="">—</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+            <div>
+              <label for="preBehavior">Comportament (1–4)</label>
+              <select id="preBehavior">
+                <option value="">—</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row">
+            <div>
+              <label for="preInteractions">Interaccions (1–4)</label>
+              <select id="preInteractions">
+                <option value="">—</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+            <div>
+              <label for="preMotivation">Motivació (1–4)</label>
+              <select id="preMotivation">
+                <option value="">—</option>
+                <option value="1">1</option>
+                <option value="2">2</option>
+                <option value="3">3</option>
+                <option value="4">4</option>
+              </select>
+            </div>
+          </div>
+
+          <label for="preNeeds">Necessitats/Adaptacions (separa amb ; )</label>
+          <input id="preNeeds" type="text" placeholder="Cap; Recordatoris; Exem" />
+
+          <label for="preCommentExtra">Comentari (3–5 línies)</label>
+          <textarea id="preCommentExtra" rows="3"></textarea>
+        </fieldset>
+
+        <fieldset>
           <legend>Recomanació</legend>
           <label for="preRecommendation">Recomanació per al tutor</label>
           <select id="preRecommendation">
@@ -545,7 +617,15 @@ async function initData(){
         module_code: v[ipre.module_code] || "",
         student_id: v[ipre.student_id] || "",
         comments: v[ipre.comments] || "",
-        recommendation: v[ipre.recommendation] || ""
+        recommendation: v[ipre.recommendation] || "",
+        nota_estimada: typeof ipre.nota_estimada === "number" ? v[ipre.nota_estimada] : "",
+        semafor: typeof ipre.semafor === "number" ? v[ipre.semafor] : "",
+        academic: typeof ipre.academic === "number" ? v[ipre.academic] : "",
+        comportament: typeof ipre.comportament === "number" ? v[ipre.comportament] : "",
+        interaccions: typeof ipre.interaccions === "number" ? v[ipre.interaccions] : "",
+        motivacio: typeof ipre.motivacio === "number" ? v[ipre.motivacio] : "",
+        necessitats: typeof ipre.necessitats === "number" ? v[ipre.necessitats] : "",
+        comentari_extra: typeof ipre.comentari_extra === "number" ? v[ipre.comentari_extra] : ""
       };
     });
   }catch(e){
@@ -768,10 +848,26 @@ function openFormForStudent(stu){
   if(pe){
     $("preComment").value = pe.comments || "";
     $("preRecommendation").value = pe.recommendation || "";
+    $("preGrade").value = pe.nota_estimada || "";
+    $("preTrafficLight").value = pe.semafor || "";
+    $("preAcademic").value = pe.academic || "";
+    $("preBehavior").value = pe.comportament || "";
+    $("preInteractions").value = pe.interaccions || "";
+    $("preMotivation").value = pe.motivacio || "";
+    $("preNeeds").value = pe.necessitats || "";
+    $("preCommentExtra").value = pe.comentari_extra || "";
     $("saveStatus").textContent = "Preavaluació carregada des d'Excel.";
   }else{
     $("preComment").value = "";
     $("preRecommendation").value = "";
+    $("preGrade").value = "";
+    $("preTrafficLight").value = "";
+    $("preAcademic").value = "";
+    $("preBehavior").value = "";
+    $("preInteractions").value = "";
+    $("preMotivation").value = "";
+    $("preNeeds").value = "";
+    $("preCommentExtra").value = "";
     $("saveStatus").textContent = "Fent una nova preavaluació.";
   }
 
@@ -795,7 +891,15 @@ function buildValuesFromPreeval(pe){
     module_code: pe.module_code,
     student_id: pe.student_id,
     comments: pe.comments || "",
-    recommendation: pe.recommendation || ""
+    recommendation: pe.recommendation || "",
+    nota_estimada: pe.nota_estimada || "",
+    semafor: pe.semafor || "",
+    academic: pe.academic || "",
+    comportament: pe.comportament || "",
+    interaccions: pe.interaccions || "",
+    motivacio: pe.motivacio || "",
+    necessitats: pe.necessitats || "",
+    comentari_extra: pe.comentari_extra || ""
   };
   preCols.forEach((name, idx) => {
     if(Object.prototype.hasOwnProperty.call(map, name)){
@@ -817,6 +921,14 @@ async function savePreevaluation(){
   }
   const comments = $("preComment").value.trim();
   const recommendation = $("preRecommendation").value;
+  const grade = $("preGrade").value.trim();
+  const traffic = $("preTrafficLight").value;
+  const academic = $("preAcademic").value;
+  const behavior = $("preBehavior").value;
+  const interactions = $("preInteractions").value;
+  const motivation = $("preMotivation").value;
+  const needs = $("preNeeds").value.trim();
+  const commentExtra = $("preCommentExtra").value.trim();
 
   if(!recommendation){
     if(!confirm("No has seleccionat cap recomanació. Vols desar igualment?")){
@@ -835,7 +947,15 @@ async function savePreevaluation(){
     module_code: currentModule.module_code || "",
     student_id: currentStudent.student_id || "",
     comments,
-    recommendation
+    recommendation,
+    nota_estimada: grade,
+    semafor: traffic,
+    academic,
+    comportament: behavior,
+    interaccions: interactions,
+    motivacio: motivation,
+    necessitats: needs,
+    comentari_extra: commentExtra
   };
 
   try{
