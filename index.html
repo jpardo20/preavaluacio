@@ -600,8 +600,8 @@ async function initData(){
     preCols = cols.value.map(c => c.name);
 
     // Columnes mínimes necessàries
-    requireColumns(preCols, ["prof_email","course","group","module_code","student_id","comments","recommendation"], "Preavaluacions");
-
+    // requireColumns(preCols, ["prof_email","course","group","module_code","student_id","comments","recommendation"], "Preavaluacions");
+    requireColumns(preCols, ["course","group","student_id","student_name","module_code","module_name","nota_0a10","academic_1a4","comportament_1a4","interaccions_1a4","motivacio_1a4","necessitats","semafor","comentari","prof_email","prof_name","timestamp"], "Preavaluacions");
     const rowsRes = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(config.preTableName)}/rows`);
     const rows = rowsRes.value || [];
     const ipre = Object.fromEntries(preCols.map((n,i) => [n,i]));
