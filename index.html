@@ -13,59 +13,189 @@
       --focus: 0 0 0 3px rgba(10,108,241,.25);
     }
     *{box-sizing:border-box}
-    body{margin:0;font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;background:var(--bg);color:var(--text);}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;
+      background:var(--bg);
+      color:var(--text);
+    }
     a{color:var(--primary)}
     .hidden{display:none!important}
 
     /* HERO (pre-login) */
-    .hero{position:relative;min-height:82vh;display:grid;place-items:center;padding:24px;
-      background:linear-gradient(120deg,#0e6efd 0%, #34b3ff 100%);color:#fff;overflow:hidden}
-    .hero .container{max-width:980px;display:grid;grid-template-columns:1fr;gap:28px;align-items:center}
-    .hero h1{margin:0 0 6px;font-size:clamp(28px,5vw,54px);line-height:1.05;text-shadow:0 6px 22px rgba(0,0,0,.18)}
-    .hero p{margin:.2rem 0 1.4rem;font-size:clamp(16px,2.5vw,19px);opacity:.95}
-    .hero .cta{display:inline-flex;align-items:center;gap:10px;padding:12px 18px;border-radius:12px;background:#fff;color:#0b57d0;border:0;cursor:pointer;font-weight:600;box-shadow:var(--shadow)}
-    .hero .cta:focus{outline:none;box-shadow:var(--focus)}
+    .hero{
+      position:relative;
+      min-height:82vh;
+      display:grid;
+      place-items:center;
+      padding:24px;
+      background:linear-gradient(120deg,#0e6efd 0%, #34b3ff 100%);
+      color:#fff;
+      overflow:hidden;
+    }
+    .hero .container{
+      max-width:980px;
+      display:grid;
+      grid-template-columns:1fr;
+      gap:28px;
+      align-items:center;
+    }
+    .hero h1{
+      margin:0 0 6px;
+      font-size:clamp(28px,5vw,54px);
+      line-height:1.05;
+      text-shadow:0 6px 22px rgba(0,0,0,.18);
+    }
+    .hero p{
+      margin:.2rem 0 1.4rem;
+      font-size:clamp(16px,2.5vw,19px);
+      opacity:.95;
+    }
+    .hero .cta{
+      display:inline-flex;
+      align-items:center;
+      gap:10px;
+      padding:12px 18px;
+      border-radius:12px;
+      background:#fff;
+      color:#0b57d0;
+      border:0;
+      cursor:pointer;
+      font-weight:600;
+      box-shadow:var(--shadow);
+    }
+    .hero .cta:focus{
+      outline:none;
+      box-shadow:var(--focus);
+    }
     .hero small{opacity:.85}
 
     /* APP BAR (post-login) */
-    .appbar{position:sticky;top:0;z-index:50;background:#ffffffd9;backdrop-filter:blur(6px);
-      border-bottom:1px solid var(--bd);box-shadow:0 6px 18px rgba(16,24,40,.06)}
-    .appbar-inner{max-width:980px;margin:0 auto;display:flex;align-items:center;justify-content:space-between;padding:10px 16px}
+    .appbar{
+      position:sticky;
+      top:0;
+      z-index:50;
+      background:#ffffffd9;
+      backdrop-filter:blur(6px);
+      border-bottom:1px solid var(--bd);
+      box-shadow:0 6px 18px rgba(16,24,40,.06);
+    }
+    .appbar-inner{
+      max-width:980px;
+      margin:0 auto;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      padding:10px 16px;
+    }
     .who{color:#334155;font-size:14px}
-    .logout{background:#fff;border:1px solid var(--bd);border-radius:10px;padding:8px 12px;cursor:pointer}
+    .logout{
+      background:#fff;
+      border:1px solid var(--bd);
+      border-radius:10px;
+      padding:8px 12px;
+      cursor:pointer;
+    }
     .logout:hover{background:#f8f9fb}
 
     /* APP */
-    .wrap{max-width:900px;margin:24px auto 32px;padding:0 16px}
-    .card{background:var(--card);border:1px solid var(--bd);border-radius:14px;box-shadow:var(--shadow);padding:18px}
+    .wrap{
+      max-width:900px;
+      margin:24px auto 32px;
+      padding:0 16px;
+    }
+    .card{
+      background:var(--card);
+      border:1px solid var(--bd);
+      border-radius:14px;
+      box-shadow:var(--shadow);
+      padding:18px;
+    }
     .muted{color:var(--muted)}
 
-    /* PROGRESS (only inside app) */
-    .progress{position:relative;background:#eef2ff;border-radius:999px;height:12px;overflow:hidden}
-    .progress>.bar{height:100%;width:calc(var(--pct,0)*1%);background:linear-gradient(90deg,#0e6efd,#34b3ff);transition:width .35s ease}
-    .progress-label{margin-top:8px;font-size:12px;color:var(--muted)}
-
     /* GENERIC FORM / BUTTONS */
-    fieldset{border:1px solid var(--bd);border-radius:12px;padding:14px;margin:14px 0}
+    fieldset{
+      border:1px solid var(--bd);
+      border-radius:12px;
+      padding:14px;
+      margin:14px 0;
+    }
     legend{padding:0 6px}
-    label{display:block;font-weight:600;margin:8px 0 6px}
-    select, textarea{width:100%;padding:10px 12px;border:1px solid #cfd4dc;border-radius:10px;background:#fff;font-family:inherit;font-size:14px}
-    .row{display:grid;grid-template-columns:1fr 1fr;gap:14px}
-    .btn{padding:10px 14px;border-radius:10px;border:1px solid #1f2937;background:#111827;color:#fff;cursor:pointer}
-    .btn-small{padding:6px 10px;font-size:13px}
-    .btn:disabled{opacity:.6;cursor:not-allowed}
-    .ok{color:#0a7c2f}.err{color:#b00020}
+    label{
+      display:block;
+      font-weight:600;
+      margin:8px 0 6px;
+    }
+    select, textarea{
+      width:100%;
+      padding:10px 12px;
+      border:1px solid #cfd4dc;
+      border-radius:10px;
+      background:#fff;
+      font-family:inherit;
+      font-size:14px;
+    }
+    .row{
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:14px;
+    }
+    .btn{
+      padding:10px 14px;
+      border-radius:10px;
+      border:1px solid #1f2937;
+      background:#111827;
+      color:#fff;
+      cursor:pointer;
+    }
+    .btn-small{
+      padding:6px 10px;
+      font-size:13px;
+    }
+    .btn:disabled{
+      opacity:.6;
+      cursor:not-allowed;
+    }
+    .ok{color:#0a7c2f}
+    .err{color:#b00020}
 
     /* TABLES */
-    table{width:100%;border-collapse:collapse;margin-top:10px}
-    th,td{border:1px solid #e5e7eb;padding:6px 8px;font-size:14px;text-align:left}
-    th{background:#f9fafb;font-weight:600}
+    table{
+      width:100%;
+      border-collapse:collapse;
+      margin-top:10px;
+    }
+    th,td{
+      border:1px solid #e5e7eb;
+      padding:6px 8px;
+      font-size:14px;
+      text-align:left;
+    }
+    th{
+      background:#f9fafb;
+      font-weight:600;
+    }
     tr.clickable-row{cursor:pointer}
     tr.clickable-row:hover{background:#eef2ff}
 
-    .pill{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:12px;font-weight:500}
-    .pill.done{background:#ecfdf3;color:#027a48;border:1px solid #86efac}
-    .pill.pending{background:#fff7ed;color:#c05621;border:1px solid #fed7aa}
+    .pill{
+      display:inline-flex;
+      align-items:center;
+      padding:2px 8px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:500;
+    }
+    .pill.done{
+      background:#ecfdf3;
+      color:#027a48;
+      border:1px solid #86efac;
+    }
+    .pill.pending{
+      background:#fff7ed;
+      color:#c05621;
+      border:1px solid #fed7aa;
+    }
   </style>
 </head>
 <body>
@@ -93,10 +223,6 @@
   <!-- Aplicació principal (mòduls → alumnes → formulari) -->
   <div class="wrap hidden" id="app">
     <div class="card">
-      <div>
-        <div class="progress" aria-hidden="true"><div class="bar" id="topBar" style="--pct:33"></div></div>
-        <div class="progress-label" id="topLabel">Pas 1 de 3</div>
-      </div>
 
       <!-- Vista 1: Mòduls del professor -->
       <section id="view-modules">
@@ -131,7 +257,7 @@
             <label for="filterStatus">Filtre</label>
             <select id="filterStatus">
               <option value="all">Tots els alumnes</option>
-              <option value="pending">Només pendents</</option>
+              <option value="pending">Només pendents</option>
               <option value="done">Només amb preavaluació</option>
             </select>
           </div>
@@ -218,8 +344,6 @@ const config = {
   preTableName: "Preavaluacions"
 };
 
-const PROG_TOTAL = 3;
-
 /* ========= MSAL + GRAPH ========= */
 const msalConfig = {
   auth: {
@@ -234,13 +358,6 @@ const graphScopes = ["User.Read","Files.ReadWrite", ...(config.useSharePointSite
 const msalApp = new msal.PublicClientApplication(msalConfig);
 
 const $ = (id) => document.getElementById(id);
-
-function setProgress(step){
-  const pct = Math.max(1, Math.min(PROG_TOTAL, step)) / PROG_TOTAL * 100;
-  $("topBar").style.setProperty("--pct", pct);
-  $("topLabel").textContent = `Pas ${step} de ${PROG_TOTAL}`;
-}
-setProgress(1);
 
 let currentUserEmail = null;
 let alumnes = [];
@@ -271,9 +388,9 @@ function showView(view){
   v2.classList.add("hidden");
   v3.classList.add("hidden");
 
-  if(view === "modules"){ v1.classList.remove("hidden"); setProgress(1); }
-  else if(view === "students"){ v2.classList.remove("hidden"); setProgress(2); }
-  else { v3.classList.remove("hidden"); setProgress(3); }
+  if(view === "modules"){ v1.classList.remove("hidden"); }
+  else if(view === "students"){ v2.classList.remove("hidden"); }
+  else { v3.classList.remove("hidden"); }
 }
 
 function resetUI(){
@@ -293,7 +410,6 @@ function resetUI(){
   currentStudentsInModule = [];
   currentStudent = null;
   currentPreeval = null;
-  setProgress(1);
   log("");
   $("modulesTableBody").innerHTML = "";
   $("studentsTableBody").innerHTML = "";
