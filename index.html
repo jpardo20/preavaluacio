@@ -126,7 +126,7 @@
       font-weight:600;
       margin:8px 0 6px;
     }
-    select, textarea{
+    select, textarea, input[type="number"], input[type="text"]{
       width:100%;
       padding:10px 12px;
       border:1px solid #cfd4dc;
@@ -216,7 +216,7 @@
   <div class="appbar hidden" id="appbar">
     <div class="appbar-inner">
       <span class="who" id="whoami">—</span>
-      <button class="logout" id="btnLogout" title="Tanca la sessió">Tanca sessió</button>
+      <button class="logout" id="btnLogout" title="Tanca sessió">Tanca sessió</button>
     </div>
   </div>
 
@@ -299,12 +299,12 @@
           <div class="row">
             <div>
               <label for="preGrade">Nota estimada (0–10)</label>
-              <input id="preGrade" type="number" min="0" max="10" step="0.5" />
+              <input id="preGrade" type="number" min="0" max="10" step="0.1" />
             </div>
             <div>
               <label for="preTrafficLight">Semàfor</label>
               <select id="preTrafficLight">
-                <option value="">— Selecciona —</option>
+                <option value="">— Selecciona una opció —</option>
                 <option value="Verd">Verd</option>
                 <option value="Groc">Groc</option>
                 <option value="Vermell">Vermell</option>
@@ -316,7 +316,6 @@
             <div>
               <label for="preAcademic">Acadèmic (1–4)</label>
               <select id="preAcademic">
-                <option value="">—</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
@@ -326,7 +325,6 @@
             <div>
               <label for="preBehavior">Comportament (1–4)</label>
               <select id="preBehavior">
-                <option value="">—</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
@@ -339,7 +337,6 @@
             <div>
               <label for="preInteractions">Interaccions (1–4)</label>
               <select id="preInteractions">
-                <option value="">—</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
@@ -349,7 +346,6 @@
             <div>
               <label for="preMotivation">Motivació (1–4)</label>
               <select id="preMotivation">
-                <option value="">—</option>
                 <option value="1">1</option>
                 <option value="2">2</option>
                 <option value="3">3</option>
@@ -359,7 +355,7 @@
           </div>
 
           <label for="preNeeds">Necessitats/Adaptacions (separa amb ; )</label>
-          <input id="preNeeds" type="text" placeholder="Cap; Recordatoris; Exem" />
+          <input id="preNeeds" type="text" />
 
           <label for="preCommentExtra">Comentari (3–5 línies)</label>
           <textarea id="preCommentExtra" rows="3"></textarea>
@@ -410,7 +406,6 @@ const config = {
     assign: "Assignacions",
     professors: "Professors"
   },
-
 
   // Fitxer amb les preavaluacions guardades
   preFilePath: "/tutoria/Preavaluacio/preavaluacio_dades.xlsx",
@@ -488,6 +483,14 @@ function resetUI(){
   $("studentsTableBody").innerHTML = "";
   $("preComment").value = "";
   $("preRecommendation").value = "";
+  $("preGrade").value = "";
+  $("preTrafficLight").value = "";
+  $("preAcademic").value = "1";
+  $("preBehavior").value = "1";
+  $("preInteractions").value = "1";
+  $("preMotivation").value = "1";
+  $("preNeeds").value = "";
+  $("preCommentExtra").value = "";
   $("saveStatus").textContent = "";
 }
 
@@ -599,12 +602,21 @@ async function initData(){
     const cols = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(config.preTableName)}/columns`);
     preCols = cols.value.map(c => c.name);
 
-    // Columnes mínimes necessàries
-    // requireColumns(preCols, ["prof_email","course","group","module_code","student_id","comments","recommendation"], "Preavaluacions");
-    requireColumns(preCols, ["course","group","student_id","student_name","module_code","module_name","nota_0a10","academic_1a4","comportament_1a4","interaccions_1a4","motivacio_1a4","necessitats","semafor","comentari","prof_email","prof_name","timestamp"], "Preavaluacions");
+    // Columnes mínimes necessàries segons el teu Excel
+    requireColumns(
+      preCols,
+      ["course","group","student_id","student_name","module_code","module_name",
+       "nota_0a10","academic_1a4","comportament_1a4","interaccions_1a4","motivacio_1a4",
+       "necessitats","semafor","comentari","prof_email"],
+      "Respostes"
+    );
+
     const rowsRes = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(config.preTableName)}/rows`);
     const rows = rowsRes.value || [];
     const ipre = Object.fromEntries(preCols.map((n,i) => [n,i]));
+
+    const getVal = (v, name) =>
+      (ipre[name] !== undefined && v[ipre[name]] !== undefined) ? v[ipre[name]] : "";
 
     preevaluacions = rows.map((r, idx) => {
       const v = r.values[0];
@@ -612,28 +624,33 @@ async function initData(){
       return {
         _rowIndex: idxRow,
         rawValues: v.slice(),
-        prof_email: (v[ipre.prof_email] || "").toLowerCase(),
-        course: v[ipre.course] || "",
-        group: v[ipre.group] || "",
-        module_code: v[ipre.module_code] || "",
-        student_id: v[ipre.student_id] || "",
-        comments: v[ipre.comments] || "",
-        recommendation: v[ipre.recommendation] || "",
-        nota_estimada: typeof ipre.nota_estimada === "number" ? v[ipre.nota_estimada] : "",
-        semafor: typeof ipre.semafor === "number" ? v[ipre.semafor] : "",
-        academic: typeof ipre.academic === "number" ? v[ipre.academic] : "",
-        comportament: typeof ipre.comportament === "number" ? v[ipre.comportament] : "",
-        interaccions: typeof ipre.interaccions === "number" ? v[ipre.interaccions] : "",
-        motivacio: typeof ipre.motivacio === "number" ? v[ipre.motivacio] : "",
-        necessitats: typeof ipre.necessitats === "number" ? v[ipre.necessitats] : "",
-        comentari_extra: typeof ipre.comentari_extra === "number" ? v[ipre.comentari_extra] : ""
+        course: getVal(v,"course") || "",
+        group: getVal(v,"group") || "",
+        student_id: getVal(v,"student_id") || "",
+        student_name: getVal(v,"student_name") || "",
+        module_code: getVal(v,"module_code") || "",
+        module_name: getVal(v,"module_name") || "",
+        nota_0a10: getVal(v,"nota_0a10") || "",
+        academic_1a4: getVal(v,"academic_1a4") || "",
+        comportament_1a4: getVal(v,"comportament_1a4") || "",
+        interaccions_1a4: getVal(v,"interaccions_1a4") || "",
+        motivacio_1a4: getVal(v,"motivacio_1a4") || "",
+        necessitats: getVal(v,"necessitats") || "",
+        semafor: getVal(v,"semafor") || "",
+        comentari: getVal(v,"comentari") || "",
+        prof_email: (getVal(v,"prof_email") || "").toLowerCase(),
+        prof_name: getVal(v,"prof_name") || "",
+        timestamp: getVal(v,"timestamp") || "",
+        recomanacio: getVal(v,"recomanacio") || "" // si no existeix, queda buit
       };
     });
   }catch(e){
     console.warn("No s'ha pogut llegir la taula de Preavaluacions (es crearà a mesura que desis).", e);
     preevaluacions = [];
-    preCols = ["prof_email","course","group","module_code","student_id","comments","recommendation"];
-    preFileUrlCache = null; // es tornarà a calcular quan calgui
+    preCols = ["course","group","student_id","student_name","module_code","module_name",
+               "nota_0a10","academic_1a4","comportament_1a4","interaccions_1a4","motivacio_1a4",
+               "necessitats","semafor","comentari","prof_email","prof_name","timestamp","recomanacio"];
+    preFileUrlCache = null;
   }
 
   // 5) Actualitza capçalera i vistes
@@ -847,28 +864,28 @@ function openFormForStudent(stu){
   $("formSubtitle").textContent = `${profName} — ${modName}`;
 
   if(pe){
-    $("preComment").value = pe.comments || "";
-    $("preRecommendation").value = pe.recommendation || "";
-    $("preGrade").value = pe.nota_estimada || "";
+    $("preComment").value      = pe.comentari || "";
+    $("preCommentExtra").value = "";
+    $("preRecommendation").value = pe.recomanacio || "";
+    $("preGrade").value        = pe.nota_0a10 || "";
     $("preTrafficLight").value = pe.semafor || "";
-    $("preAcademic").value = pe.academic || "";
-    $("preBehavior").value = pe.comportament || "";
-    $("preInteractions").value = pe.interaccions || "";
-    $("preMotivation").value = pe.motivacio || "";
-    $("preNeeds").value = pe.necessitats || "";
-    $("preCommentExtra").value = pe.comentari_extra || "";
+    $("preAcademic").value     = pe.academic_1a4 || "1";
+    $("preBehavior").value     = pe.comportament_1a4 || "1";
+    $("preInteractions").value = pe.interaccions_1a4 || "1";
+    $("preMotivation").value   = pe.motivacio_1a4 || "1";
+    $("preNeeds").value        = pe.necessitats || "";
     $("saveStatus").textContent = "Preavaluació carregada des d'Excel.";
   }else{
     $("preComment").value = "";
+    $("preCommentExtra").value = "";
     $("preRecommendation").value = "";
     $("preGrade").value = "";
     $("preTrafficLight").value = "";
-    $("preAcademic").value = "";
-    $("preBehavior").value = "";
-    $("preInteractions").value = "";
-    $("preMotivation").value = "";
+    $("preAcademic").value = "1";
+    $("preBehavior").value = "1";
+    $("preInteractions").value = "1";
+    $("preMotivation").value = "1";
     $("preNeeds").value = "";
-    $("preCommentExtra").value = "";
     $("saveStatus").textContent = "Fent una nova preavaluació.";
   }
 
@@ -886,21 +903,24 @@ function buildValuesFromPreeval(pe){
   // Genera un array de valors seguint l'ordre de columnes de la taula
   const values = new Array(preCols.length).fill("");
   const map = {
-    prof_email: pe.prof_email,
     course: pe.course,
     group: pe.group,
-    module_code: pe.module_code,
     student_id: pe.student_id,
-    comments: pe.comments || "",
-    recommendation: pe.recommendation || "",
-    nota_estimada: pe.nota_estimada || "",
-    semafor: pe.semafor || "",
-    academic: pe.academic || "",
-    comportament: pe.comportament || "",
-    interaccions: pe.interaccions || "",
-    motivacio: pe.motivacio || "",
+    student_name: pe.student_name || "",
+    module_code: pe.module_code,
+    module_name: pe.module_name || "",
+    nota_0a10: pe.nota_0a10 || "",
+    academic_1a4: pe.academic_1a4 || "",
+    comportament_1a4: pe.comportament_1a4 || "",
+    interaccions_1a4: pe.interaccions_1a4 || "",
+    motivacio_1a4: pe.motivacio_1a4 || "",
     necessitats: pe.necessitats || "",
-    comentari_extra: pe.comentari_extra || ""
+    semafor: pe.semafor || "",
+    comentari: pe.comentari || "",
+    prof_email: pe.prof_email || "",
+    prof_name: pe.prof_name || "",
+    timestamp: pe.timestamp || "",
+    recomanacio: pe.recomanacio || ""
   };
   preCols.forEach((name, idx) => {
     if(Object.prototype.hasOwnProperty.call(map, name)){
@@ -920,19 +940,22 @@ async function savePreevaluation(){
     alert("Falta informació per desar la preavaluació.");
     return;
   }
-  const comments = $("preComment").value.trim();
-  const recommendation = $("preRecommendation").value;
-  const grade = $("preGrade").value.trim();
-  const traffic = $("preTrafficLight").value;
-  const academic = $("preAcademic").value;
-  const behavior = $("preBehavior").value;
-  const interactions = $("preInteractions").value;
-  const motivation = $("preMotivation").value;
-  const needs = $("preNeeds").value.trim();
-  const commentExtra = $("preCommentExtra").value.trim();
 
-  if(!recommendation){
-    if(!confirm("No has seleccionat cap recomanació. Vols desar igualment?")){
+  const commentTop       = $("preComment").value.trim();
+  const commentExtra     = $("preCommentExtra").value.trim();
+  const recommendation   = $("preRecommendation").value;
+  const nota_0a10        = $("preGrade").value;
+  const semafor          = $("preTrafficLight").value;
+  const academic_1a4     = $("preAcademic").value;
+  const comportament_1a4 = $("preBehavior").value;
+  const interaccions_1a4 = $("preInteractions").value;
+  const motivacio_1a4    = $("preMotivation").value;
+  const necessitats      = $("preNeeds").value;
+
+  const comentari        = commentTop || commentExtra; // prioritzem el camp principal
+
+  if(!semafor && !nota_0a10 && !comentari){
+    if(!confirm("No hi ha cap nota, semàfor ni comentari. Vols desar igualment?")){
       return;
     }
   }
@@ -941,22 +964,30 @@ async function savePreevaluation(){
   $("saveStatus").textContent = "Desant la preavaluació…";
 
   const email = (currentUserEmail || "").toLowerCase();
+  const profName = currentProfessor
+    ? `${currentProfessor.profe_name} ${currentProfessor.profe_lastname}`
+    : email;
+  const timestamp = new Date().toISOString();
+
   const peBase = {
-    prof_email: email,
     course: currentStudent.course || "",
     group: currentStudent.group || "",
-    module_code: currentModule.module_code || "",
     student_id: currentStudent.student_id || "",
-    comments,
-    recommendation,
-    nota_estimada: grade,
-    semafor: traffic,
-    academic,
-    comportament: behavior,
-    interaccions: interactions,
-    motivacio: motivation,
-    necessitats: needs,
-    comentari_extra: commentExtra
+    student_name: currentStudent.student_name || "",
+    module_code: currentModule.module_code || "",
+    module_name: currentModule.module_name || "",
+    nota_0a10,
+    academic_1a4,
+    comportament_1a4,
+    interaccions_1a4,
+    motivacio_1a4,
+    necessitats,
+    semafor,
+    comentari,
+    prof_email: email,
+    prof_name: profName,
+    timestamp,
+    recomanacio: recommendation
   };
 
   try{
@@ -965,10 +996,7 @@ async function savePreevaluation(){
 
     if(currentPreeval && typeof currentPreeval._rowIndex === "number"){
       // Actualitzar fila existent
-      const merged = {
-        ...currentPreeval,
-        ...peBase
-      };
+      const merged = { ...currentPreeval, ...peBase };
       const values = buildValuesFromPreeval(merged);
 
       const body = JSON.stringify({
@@ -982,16 +1010,11 @@ async function savePreevaluation(){
       });
 
       // Actualitza en memòria
-      currentPreeval.rawValues = values.slice();
-      currentPreeval.comments = comments;
-      currentPreeval.recommendation = recommendation;
+      Object.assign(currentPreeval, peBase, { rawValues: values.slice() });
       $("saveStatus").textContent = "Preavaluació actualitzada correctament.";
     }else{
       // Afegir nova fila
-      const tempPe = {
-        ...peBase,
-        rawValues: []
-      };
+      const tempPe = { ...peBase, rawValues: [] };
       const values = buildValuesFromPreeval(tempPe);
 
       const body = JSON.stringify({
@@ -1005,18 +1028,15 @@ async function savePreevaluation(){
       });
 
       const newIndex = (typeof res.index === "number") ? res.index : preevaluacions.length;
-      const newPe = {
-        _rowIndex: newIndex,
-        rawValues: values.slice(),
-        ...peBase
-      };
+      const newPe = { _rowIndex: newIndex, rawValues: values.slice(), ...peBase };
       preevaluacions.push(newPe);
       currentPreeval = newPe;
       $("saveStatus").textContent = "Preavaluació desada correctament.";
     }
 
-    // Després de desar, actualitza comptadors i torna a la llista d'alumnes
+    // refresca alumnes i mòduls
     renderStudents();
+    renderModules();
   }catch(e){
     console.error(e);
     $("saveStatus").textContent = "Error en desar la preavaluació.";
@@ -1060,10 +1080,12 @@ $("btnStart").addEventListener("click", start);
 $("btnLogout").addEventListener("click", logout);
 
 $("btnBackToModules").addEventListener("click", () => {
+  renderModules();
   showView("modules");
 });
 
 $("btnBackToStudents").addEventListener("click", () => {
+  renderStudents();
   showView("students");
 });
 
