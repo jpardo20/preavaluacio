@@ -6,6 +6,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1" />
   <link rel="preconnect" href="https://alcdn.msauth.net">
   <script src="https://alcdn.msauth.net/browser/2.38.0/js/msal-browser.min.js"></script>
+  <script src="config-preavaluacio.js"></script>
   <style>
     :root{
       --bg:#f6f7fb; --card:#ffffff; --bd:#e7e7ea; --text:#111; --muted:#667085;
@@ -385,32 +386,17 @@
 
 <script>
 /* ========= CONFIGURACIÓ BÀSICA ========= */
+// Calculem el redirectUri per defecte a partir de la URL actual
 const path = window.location.pathname.endsWith(".html")
   ? window.location.pathname
   : (window.location.pathname.endsWith("/") ? window.location.pathname : window.location.pathname + "/");
 const redirectGuess = window.location.origin + path;
 
-const config = {
-  clientId: "1892e1b0-6724-4cfe-b0aa-83d746e755e8",
-  tenantId: "f6fbd66a-02b9-4804-8f74-b16600cf5e00",
-  redirectUri: redirectGuess,
-
-  // Si els arxius són a un site de SharePoint, posa useSharePointSite a true
-  useSharePointSite: false,
-  sharePoint: { hostname: "ELTEUTENANT.sharepoint.com", sitePath: "/sites/ElMeuSite" },
-
-  // Fitxer de referències (Alumnes, Assignacions, Professors)
-  refsFilePath: "/tutoria/Preavaluacio/referencies.xlsx",
-  refsTables: {
-    alumnes: "Alumnes",
-    assign: "Assignacions",
-    professors: "Professors"
-  },
-
-  // Fitxer amb les preavaluacions guardades
-  preFilePath: "/tutoria/Preavaluacio/preavaluacio_dades.xlsx",
-  preTableName: "Respostes"
-};
+// Agafem la config del fitxer extern i, si no porta redirectUri, fem servir el calculat
+const baseConfig = (window.PREAVAL_CONFIG || {});
+const config = Object.assign({}, baseConfig, {
+  redirectUri: baseConfig.redirectUri && baseConfig.redirectUri.trim() !== "" ? baseConfig.redirectUri : redirectGuess
+});
 
 /* ========= MSAL + GRAPH ========= */
 const msalConfig = {
@@ -608,7 +594,7 @@ async function initData(){
       ["course","group","student_id","student_name","module_code","module_name",
        "nota_0a10","academic_1a4","comportament_1a4","interaccions_1a4","motivacio_1a4",
        "necessitats","semafor","comentari","prof_email"],
-      "Respostes"
+      config.preTableName
     );
 
     const rowsRes = await gfetch(`${fileUrl}/workbook/tables/${encodeURIComponent(config.preTableName)}/rows`);
